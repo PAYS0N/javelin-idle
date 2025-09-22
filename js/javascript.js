@@ -27,8 +27,8 @@ function updateScore() {
 }
 
 function doGameSetup() {
-    userInput.addEventListener("keyup", () => {runGameLogic(getInput())})
-    let autoTyper = new Upgrade("Auto-typer", 20, generateKey(3), 3, document.querySelector(".first-upgrade"))
+    runGameLogic()
+    let autoTyper = new Upgrade("Auto-typer", 20, generateKey(3), 3, 1, document.querySelector(".first-upgrade"))
     upgrades.push(autoTyper)
 }
 
@@ -36,17 +36,28 @@ function getInput() {
     return userInput.value
 }
 
-function runGameLogic(input) {
-    if (isInputScorable(input)) {
-        inputCorrect()
-    }
-    else {
-        upgrade = returnUpgradeByKey(input)
-        if (upgrade) {
-            purchaseUpgrade(upgrade)
+function runGameLogic() {
+    setInterval(() => {
+        input = getInput()
+        if (isInputScorable(input)) {
+            inputCorrect()
         }
+        else {
+            upgrade = returnUpgradeByKey(input)
+            if (upgrade) {
+                purchaseUpgrade(upgrade)
+            }
+        }
+        displayUpgrades()
+        updateScore()
+    }, 100)
+    setInterval(addAutoScore, 1000)
+}
+
+function addAutoScore() {
+    for (upgrade of upgrades) {
+        score = score + upgrade.owned * upgrade.value
     }
-    displayUpgrades()
 }
 
 function inputCorrect() {
@@ -102,12 +113,14 @@ function purchaseUpgrade(upgrade) {
 
 class Upgrade{
 
-    constructor(name, cost, key, keyLength, htmlObject) {
+    constructor(name, cost, key, keyLength, value, htmlObject) {
         this.name = name
         this.cost = cost
         this.html = htmlObject
         this.owned = 0
         this.key = key
+        this.keyLength = keyLength
+        this.value = value
     }
 
     display() {
@@ -123,7 +136,7 @@ class Upgrade{
     purchase() {
         this.owned += 1;
         this.cost += 3
-        this.key = generateKey(keyLength + (this.owned / 3))
+        this.key = generateKey(this.keyLength + (this.owned / 3))
     }
 
 }
