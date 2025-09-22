@@ -11,7 +11,7 @@ function setConstants() {
     userInput = document.querySelector(".typing-input")
     goalDisplay = document.querySelector(".goal-display")
     purchaseChar = "$"
-    charactersToType = ["{", "}", "(", ")", "*", "+", "="]
+    charactersToType = ["{", "}", "(", ")", "*", "+", "=", ",", ".", "[", "]"]
     if (charactersToType.includes(purchaseChar)) {console.error("chars must not contain purchase char")}
     upgrades = []    
 }
@@ -28,7 +28,7 @@ function updateScore() {
 
 function doGameSetup() {
     runGameLogic()
-    let autoTyper = new Upgrade("Auto-typer", 20, generateKey(3), 3, 1, document.querySelector(".first-upgrade"))
+    let autoTyper = new Upgrade("Auto-typer", 20, generateKey(3), 3, .25, document.querySelector(".first-upgrade"))
     upgrades.push(autoTyper)
 }
 
@@ -48,6 +48,7 @@ function runGameLogic() {
                 purchaseUpgrade(upgrade)
             }
         }
+        revealUpgrades()
         displayUpgrades()
         updateScore()
     }, 100)
@@ -84,9 +85,14 @@ function isInputScorable(input) {
 
 function displayUpgrades() {
     for (upgrade of upgrades) {
+        upgrade.display()
+    }
+}
+
+function revealUpgrades(){
+    for (upgrade of upgrades) {
         if(score >= upgrade.cost * 3 / 4) {
             upgrade.html.classList.remove("unavailable")
-            upgrade.display()
         }
     }
 }
@@ -99,8 +105,13 @@ function returnUpgradeByKey(input) {
     }
 }
 
-function generateKey(num) {
-    return purchaseChar + "#{+"
+function generateKey( number) {
+    let aChars = [ purchaseChar]
+    for(let i=0; i< number; i++){
+        let nextIndex = Math.floor(Math.random() * charactersToType.length)
+        aChars.push(charactersToType[nextIndex])
+    }
+    return aChars.join("")
 }
 
 function purchaseUpgrade(upgrade) {
