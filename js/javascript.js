@@ -73,7 +73,7 @@ function isInputScorable(input) {
 
 function displayUpgrades() {
     for (upgrade of upgrades) {
-        if(score > upgrade.cost * 3 / 4) {
+        if(score >= upgrade.cost * 3 / 4) {
             upgrade.html.classList.remove("unavailable")
             upgrade.display()
         }
