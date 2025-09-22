@@ -1,7 +1,0 @@
-Add display for auto-typer that shows an empty box being typed in
-
-randomize purchase string
-
-add ticks for auto-typer (probably shift some things to tick schedule)
-
-stop checking for reveals if already revealed
