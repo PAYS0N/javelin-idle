@@ -45,8 +45,10 @@ function updateScore() {
 function doGameSetup() {
     runGameLogic()
     userInput.addEventListener("keydown", (e) => {verifyInput(e)})
-    let autoTyper = new Upgrade("Auto-typer", 20, generateKey(3), 3, .25, document.querySelector(".first-upgrade"))
-    upgrades.push(autoTyper)
+    let twoFingerTyper = new Upgrade("Two finger typer", 20, 3, generateKey(3), 3, 1/3, .25, document.querySelector(".first-upgrade"))
+    upgrades.push(twoFingerTyper)
+    let practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 100, 50, generateKey(5), 5, 2/3, .75, document.querySelector(".second-upgrade"))
+    upgrades.push(practicedTwoFingerTyper)
 }
 
 function getInput(e) {
@@ -153,13 +155,15 @@ function purchaseUpgrade(upgrade) {
 
 class Upgrade{
 
-    constructor(name, cost, key, keyLength, value, htmlObject) {
+    constructor(name, cost, costIncrease, key, keyLength, keyIncrease, value, htmlObject) {
         this.name = name
         this.cost = cost
+        this.costIncrease = costIncrease
         this.html = htmlObject
         this.owned = 0
         this.key = key
         this.keyLength = keyLength
+        this.keyIncrease = keyIncrease
         this.value = value
     }
 
@@ -175,8 +179,8 @@ class Upgrade{
 
     purchase() {
         this.owned += 1;
-        this.cost += 3
-        this.key = generateKey(this.keyLength + (this.owned / 3))
+        this.cost += this.costIncrease
+        this.key = generateKey(this.keyLength + (this.owned * this.keyIncrease))
     }
 
 }

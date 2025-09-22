@@ -47,6 +47,11 @@ body {
     font-size: 3rem;
 }
 
+.upgrades{
+    display: flex;
+    flex-direction: row;
+}
+
 .upgrade {
     display: flex;
     flex-direction: column;
