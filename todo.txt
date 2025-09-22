@@ -1,0 +1,1 @@
+Add display for auto-typer that shows an empty box being typed in
