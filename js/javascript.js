@@ -7,7 +7,7 @@ window.onload = () => {
 function setConstants() {
     score = 0
     goal = ""
-    scoreDisplay = document.querySelector(".score-display")
+    scoreDisplay = document.querySelector(".score-value")
     userInput = document.querySelector(".typing-input")
     goalDisplay = document.querySelector(".goal-display")
     purchaseChar = "$"
@@ -39,7 +39,7 @@ function doPageSetup() {
 }
 
 function updateScore() {
-    scoreDisplay.textContent = "Characters typed: " + score
+    scoreDisplay.textContent = score.toFixed(2)
 }
 
 function doGameSetup() {
@@ -61,7 +61,8 @@ function runGameLogic() {
         displayUpgrades()
         updateScore()
     }, 100)
-    setInterval(addAutoScore, 1000)
+    let timesPerSecond = 10
+    setInterval(()=>{addAutoScore(timesPerSecond)}, 1000/timesPerSecond)
 }
 
 function verifyInput(e) {
@@ -84,9 +85,9 @@ function verifyInput(e) {
 
 }
 
-function addAutoScore() {
+function addAutoScore(timesPerSecond) {
     for (upgrade of upgrades) {
-        score = score + upgrade.owned * upgrade.value
+        score = score + upgrade.owned * upgrade.value / timesPerSecond
     }
 }
 
