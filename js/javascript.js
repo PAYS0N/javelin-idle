@@ -91,10 +91,19 @@ function addAutoScore() {
 }
 
 function inputCorrect() {
+    inputSuccess()
     userInput.value = ""
     score += 1
     updateScore()
     updateGoal()
+}
+
+function inputSuccess() {
+    userInput.classList.add('green-background');
+
+    setTimeout(() => {
+      userInput.classList.remove('green-background');
+    }, 200);
 }
 
 function updateGoal() {
@@ -147,6 +156,7 @@ function generateKey( number) {
 
 function attemptUpgradePurchase(upgrade) {
     if (score >= upgrade.cost) {
+        inputSuccess()
         userInput.value = ""
         score -= upgrade.cost
         updateScore()

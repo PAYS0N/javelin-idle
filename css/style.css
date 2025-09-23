@@ -41,6 +41,12 @@ body {
     text-align: center;
 
     font-size: 3rem;
+
+    transition: background-color 0.2s ease;
+}
+
+.green-background {
+    background-color: #b6fcb6;
 }
 
 .goal-display {
