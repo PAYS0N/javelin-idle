@@ -18,11 +18,16 @@ function setConstants() {
         ")": ")",
         "*": "*",
         "+": "+",
+        "-": "-",
         "=": "=",
         ",": ",",
         ".": ".",
         "[": "[",
         "]": "]",
+        ":": ":",
+        ";": ";",
+        "'": "'",
+        "\"": "\"",
         "ArrowUp": "↑",
         "ArrowDown": "↓",
         "ArrowLeft": "←",
@@ -39,7 +44,7 @@ function doPageSetup() {
 }
 
 function updateScore() {
-    scoreDisplay.textContent = score.toFixed(2)
+    scoreDisplay.textContent = Math.floor(score)
 }
 
 function doGameSetup() {
@@ -61,7 +66,7 @@ function runGameLogic() {
         displayUpgrades()
         updateScore()
     }, 100)
-    let timesPerSecond = 10
+    let timesPerSecond = 1
     setInterval(()=>{addAutoScore(timesPerSecond)}, 1000/timesPerSecond)
 }
 
@@ -86,33 +91,55 @@ function verifyInput(e) {
 }
 
 function addAutoScore(timesPerSecond) {
+    let valueToAdd = 0
     for (upgrade of upgrades) {
-        score = score + upgrade.owned * upgrade.value / timesPerSecond
+        valueToAdd = valueToAdd + upgrade.owned * upgrade.value / timesPerSecond
+    }
+    score = score + valueToAdd
+    displayAutoScore(valueToAdd)
+}
+
+function displayAutoScore(valueToAdd) {
+    symbolsToAdd = valueToAdd*4
+    const autoInput = document.querySelector(".auto-input")
+    let maxNumberOfCharsInInput = 4
+    let spaceRemaining = maxNumberOfCharsInInput - autoInput.value.length
+    if (symbolsToAdd >= spaceRemaining) {
+        symbolsToAdd = symbolsToAdd % spaceRemaining
+        autoInput.value = ""
+        inputSuccess(autoInput)
+    }
+    for(let i=0; i<symbolsToAdd; i++){
+        autoInput.value += getRandomTypingChar()
     }
 }
 
 function inputCorrect() {
-    inputSuccess()
+    inputSuccess(userInput)
     userInput.value = ""
     score += 1
     updateScore()
     updateGoal()
 }
 
-function inputSuccess() {
-    userInput.classList.add('green-background');
+function inputSuccess(htmlObject) {
+    htmlObject.classList.add('green-background');
 
     setTimeout(() => {
-      userInput.classList.remove('green-background');
+      htmlObject.classList.remove('green-background');
     }, 200);
 }
 
 function updateGoal() {
-    let keyCodes = Object.keys(keyCodesToSymbols)
-    let nextIndex = Math.floor(Math.random() * keyCodes.length)
-    let symbolToType = keyCodesToSymbols[keyCodes[nextIndex]]
+    let symbolToType = getRandomTypingChar()
     goal = symbolToType
     displayGoal(symbolToType)
+}
+
+function getRandomTypingChar() {
+    let keyCodes = Object.keys(keyCodesToSymbols)
+    let nextIndex = Math.floor(Math.random() * keyCodes.length)
+    return keyCodesToSymbols[keyCodes[nextIndex]]
 }
 
 function displayGoal(symbol) {
@@ -157,7 +184,7 @@ function generateKey( number) {
 
 function attemptUpgradePurchase(upgrade) {
     if (score >= upgrade.cost) {
-        inputSuccess()
+        inputSuccess(userInput)
         userInput.value = ""
         score -= upgrade.cost
         updateScore()
@@ -181,6 +208,7 @@ class Upgrade{
         this.keyLength = keyLength
         this.keyIncrease = keyIncrease
         this.value = value
+        this.htmlDisplay = document.querySelector(".auto-input")
     }
 
     display() {
@@ -189,6 +217,7 @@ class Upgrade{
         this.html.querySelector(".key-value").textContent = this.key
         if (this.owned > 0) {
             this.html.querySelector(".upgrade-owned").classList.remove("unavailable")
+            this.htmlDisplay.classList.remove("unavailable")
             this.html.querySelector(".owned-value").textContent = this.owned
         }
     }
