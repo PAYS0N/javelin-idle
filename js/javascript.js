@@ -74,7 +74,7 @@ function verifyInput(e) {
         upgrade = returnUpgradeByKey(input)
         if (upgrade) {
             e.preventDefault()
-            return purchaseUpgrade(upgrade)
+            return attemptUpgradePurchase(upgrade)
         }
     }
     if(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)){
@@ -145,11 +145,16 @@ function generateKey( number) {
     return aChars.join("")
 }
 
-function purchaseUpgrade(upgrade) {
-    userInput.value = ""
-    score -= upgrade.cost
-    updateScore()
-    upgrade.purchase(1)
+function attemptUpgradePurchase(upgrade) {
+    if (score >= upgrade.cost) {
+        userInput.value = ""
+        score -= upgrade.cost
+        updateScore()
+        upgrade.purchase(1)
+    }
+    else {
+        userInput.value = "---"
+    }
 }
 
 
