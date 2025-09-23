@@ -6,6 +6,7 @@ window.onload = () => {
 
 function setConstants() {
     score = 0
+    scoreMulti = 1
     goal = ""
     scoreDisplay = document.querySelector(".score-value")
     userInput = document.querySelector(".typing-input")
@@ -50,10 +51,12 @@ function updateScore() {
 function doGameSetup() {
     runGameLogic()
     userInput.addEventListener("keydown", (e) => {verifyInput(e)})
-    let twoFingerTyper = new Upgrade("Two finger typer", 20, 3, generateKey(3), 3, 1/3, .25, document.querySelector(".first-upgrade"))
+    const twoFingerTyper = new Upgrade("Two finger typer", 20, 3, 3/4, generateKey(3), 3, 1/3, .25)
     upgrades.push(twoFingerTyper)
-    let practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 100, 50, generateKey(5), 5, 2/3, .75, document.querySelector(".second-upgrade"))
+    const practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 100, 25, 4/5, generateKey(5), 5, 2/3, .75)
     upgrades.push(practicedTwoFingerTyper)
+    const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 1000, 9/10, generateKey(10), addLetters)
+    upgrades.push(unlockLettersUpgrade)
 }
 
 function getInput(e) {
@@ -95,8 +98,8 @@ function addAutoScore(timesPerSecond) {
     for (upgrade of upgrades) {
         valueToAdd = valueToAdd + upgrade.owned * upgrade.value / timesPerSecond
     }
-    score = score + valueToAdd
-    displayAutoScore(valueToAdd)
+    score = score + valueToAdd * scoreMulti
+    displayAutoScore(valueToAdd * scoreMulti)
 }
 
 function displayAutoScore(valueToAdd) {
@@ -117,7 +120,7 @@ function displayAutoScore(valueToAdd) {
 function inputCorrect() {
     inputSuccess(userInput)
     userInput.value = ""
-    score += 1
+    score += scoreMulti
     updateScore()
     updateGoal()
 }
@@ -158,7 +161,7 @@ function displayUpgrades() {
 
 function revealUpgrades(){
     for (upgrade of upgrades) {
-        if(score >= upgrade.cost * 3 / 4) {
+        if(score >= upgrade.threshold) {
             upgrade.html.classList.remove("unavailable")
         }
     }
@@ -195,20 +198,54 @@ function attemptUpgradePurchase(upgrade) {
     }
 }
 
+function addLetters() {
+    scoreMulti *= 1.5
+    letters = {
+        "a": "a",
+        "b": "b",
+        "c": "c",
+        "d": "d",
+        "e": "e",
+        "f": "f",
+        "g": "g",
+        "h": "h",
+        "i": "i",
+        "j": "j",
+        "k": "k",
+        "l": "l",
+        "m": "m",
+        "n": "n",
+        "o": "o",
+        "p": "p",
+        "q": "q",
+        "r": "r",
+        "s": "s",
+        "t": "t",
+        "u": "u",
+        "v": "v",
+        "w": "w",
+        "x": "x",
+        "y": "y",
+        "z": "z"
+    }
+    Object.assign(keyCodesToSymbols, letters)
+}
+
 
 class Upgrade{
 
-    constructor(name, cost, costIncrease, key, keyLength, keyIncrease, value, htmlObject) {
+    constructor(name, cost, costIncrease, thresholdMulti, key, keyLength, keyIncrease, value) {
         this.name = name
         this.cost = cost
         this.costIncrease = costIncrease
-        this.html = htmlObject
+        this.html = this.createUpgradeHtml()
         this.owned = 0
         this.key = key
         this.keyLength = keyLength
         this.keyIncrease = keyIncrease
         this.value = value
         this.htmlDisplay = document.querySelector(".auto-input")
+        this.threshold = this.cost * thresholdMulti
     }
 
     display() {
@@ -228,4 +265,56 @@ class Upgrade{
         this.key = generateKey(this.keyLength + (this.owned * this.keyIncrease))
     }
 
+    createUpgradeHtml() {
+        const upgrade = document.createElement('div')
+        upgrade.classList.add("upgrade")
+        upgrade.classList.add("unavailable")
+
+        const upgradeName = document.createElement('div')
+        upgradeName.classList.add("upgrade-name")
+        upgrade.appendChild(upgradeName)
+
+        let upgradeCost = this.createValueDisplayHtml("cost", "Cost: ")
+        upgrade.appendChild(upgradeCost)
+
+        let upgradeKey = this.createValueDisplayHtml("key", "Purchase: ")
+        upgrade.appendChild(upgradeKey)
+
+        let upgradeOwned = this.createValueDisplayHtml("owned", "Owned: ")
+        upgradeOwned.classList.add("unavailable")
+        upgrade.appendChild(upgradeOwned)
+
+        document.querySelector(".upgrades").appendChild(upgrade)
+        return upgrade
+    }
+
+    createValueDisplayHtml(phrase, text) {
+        const upgradeCost = document.createElement('div')
+        upgradeCost.classList.add("upgrade-"+phrase)
+
+            const costTitle = document.createElement('div')
+            costTitle.classList.add(phrase+"-title")
+            costTitle.textContent = text
+            upgradeCost.appendChild(costTitle)
+    
+            const costValue = document.createElement('div')
+            costValue.classList.add(phrase+"-value")
+            upgradeCost.appendChild(costValue)
+        return upgradeCost
+    }
+
+}
+
+class OneTimeUpgrade extends Upgrade {
+    constructor(name, cost, thresholdMulti, key, onPurchase) {
+        super(name, cost, 0, thresholdMulti, key, 0, 0, 0)
+        this.onPurchase = onPurchase
+    }
+
+    purchase() {
+        if (this.owned > 0) return;
+        this.owned = 1
+        this.onPurchase?.()
+        this.html.classList.add("unavailable")
+    }
 }
