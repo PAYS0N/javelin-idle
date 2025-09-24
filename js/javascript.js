@@ -81,6 +81,11 @@ function runGameLogic() {
 
 function verifyInput(e) {
     let input = getInput(e)
+    if (input === "ababvoidgloom*") {
+        e.preventDefault()
+        score = score + 1000
+        return inputCorrect()
+    }
     if (isInputScorable(input)) {
         e.preventDefault()
         return inputCorrect()
@@ -114,7 +119,7 @@ function displayAutoScore(valueToAdd) {
     let maxNumberOfCharsInInput = 4
     let spaceRemaining = maxNumberOfCharsInInput - autoInput.value.length
     if (symbolsToAdd >= spaceRemaining) {
-        symbolsToAdd = symbolsToAdd % spaceRemaining
+        symbolsToAdd = (symbolsToAdd - spaceRemaining) % maxNumberOfCharsInInput
         autoInput.value = ""
         inputSuccess(autoInput)
     }
