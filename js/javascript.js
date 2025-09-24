@@ -7,6 +7,7 @@ window.onload = () => {
 function setConstants() {
     score = 0
     scoreMulti = 1
+    multiDisplayed = false
     goal = ""
     scoreDisplay = document.querySelector(".score-value")
     userInput = document.querySelector(".typing-input")
@@ -40,23 +41,28 @@ function setConstants() {
 
 function doPageSetup() {
     userInput.focus()
-    updateScore()
+    displayScore()
     updateGoal()
 }
 
-function updateScore() {
+function displayScore() {
     scoreDisplay.textContent = Math.floor(score)
+    if (!multiDisplayed && scoreMulti > 1) {
+        document.querySelector('.multi-display').classList.remove("unavailable")
+        document.querySelector('.multi-value').textContent = scoreMulti
+    }
 }
 
 function doGameSetup() {
-    runGameLogic()
     userInput.addEventListener("keydown", (e) => {verifyInput(e)})
     const twoFingerTyper = new Upgrade("Two finger typer", 20, 3, 3/4, generateKey(3), 3, 1/3, .25)
     upgrades.push(twoFingerTyper)
     const practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 100, 25, 4/5, generateKey(5), 5, 2/3, .75)
     upgrades.push(practicedTwoFingerTyper)
-    const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 1000, 9/10, generateKey(10), addLetters)
+    const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 500, 9/10, generateKey(10), addLetters)
     upgrades.push(unlockLettersUpgrade)
+    lockedUpgrades = [...upgrades]
+    runGameLogic()
 }
 
 function getInput(e) {
@@ -67,7 +73,7 @@ function runGameLogic() {
     setInterval(() => {
         revealUpgrades()
         displayUpgrades()
-        updateScore()
+        displayScore()
     }, 100)
     let timesPerSecond = 1
     setInterval(()=>{addAutoScore(timesPerSecond)}, 1000/timesPerSecond)
@@ -121,7 +127,7 @@ function inputCorrect() {
     inputSuccess(userInput)
     userInput.value = ""
     score += scoreMulti
-    updateScore()
+    displayScore()
     updateGoal()
 }
 
@@ -160,9 +166,10 @@ function displayUpgrades() {
 }
 
 function revealUpgrades(){
-    for (upgrade of upgrades) {
+    for (upgrade of lockedUpgrades) {
         if(score >= upgrade.threshold) {
             upgrade.html.classList.remove("unavailable")
+            lockedUpgrades.splice(lockedUpgrades.indexOf(upgrade), 1);
         }
     }
 }
@@ -190,7 +197,7 @@ function attemptUpgradePurchase(upgrade) {
         inputSuccess(userInput)
         userInput.value = ""
         score -= upgrade.cost
-        updateScore()
+        displayScore()
         upgrade.purchase(1)
     }
     else {
