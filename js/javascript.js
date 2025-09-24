@@ -80,6 +80,10 @@ function runGameLogic() {
 }
 
 function verifyInput(e) {
+    if (userInput.classList.contains("error-state")) {
+        userInput.value = ""
+        userInput.classList.remove("error-state")
+    }
     let input = getInput(e)
     if (input === "ababvoidgloom*") {
         e.preventDefault()
@@ -206,6 +210,7 @@ function attemptUpgradePurchase(upgrade) {
         upgrade.purchase(1)
     }
     else {
+        userInput.classList.add("error-state")
         userInput.value = "---"
     }
 }
