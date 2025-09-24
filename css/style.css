@@ -103,8 +103,21 @@ body {
     background-color: #b6fcb6;
 }
 
-.goal-display {
-    font-size: 3rem;
+.goal-display{
+    display: flex;
+    flex-direction: row;
+
+    gap: 1rem;
+
+    font-size: 2.5rem;
+}
+
+.goal-value {
+    width: 3rem;
+
+    border: 2px solid black;
+
+    text-align: center;
 }
 
 .upgrades{

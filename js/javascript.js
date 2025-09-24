@@ -11,7 +11,7 @@ function setConstants() {
     goal = ""
     scoreDisplay = document.querySelector(".score-value")
     userInput = document.querySelector(".typing-input")
-    goalDisplay = document.querySelector(".goal-display")
+    goalDisplay = document.querySelector(".goal-value")
     purchaseChar = "$"
     keyCodesToSymbols = {
         "{": "{",
@@ -110,7 +110,7 @@ function addAutoScore(timesPerSecond) {
         valueToAdd = valueToAdd + upgrade.owned * upgrade.value / timesPerSecond
     }
     score = score + valueToAdd * scoreMulti
-    displayAutoScore(valueToAdd * scoreMulti)
+    displayAutoScore(valueToAdd)
 }
 
 function displayAutoScore(valueToAdd) {
@@ -157,7 +157,7 @@ function getRandomTypingChar() {
 }
 
 function displayGoal(symbol) {
-    goalDisplay.textContent = "Type: " + symbol
+    goalDisplay.textContent = symbol
 }
 
 function isInputScorable(input) {
