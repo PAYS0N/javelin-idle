@@ -12,9 +12,8 @@ function setConstants() {
     scoreDisplay = document.querySelector(".score-value")
     userInput = document.querySelector(".typing-input")
     goalDisplay = document.querySelector(".goal-value")
-    purchaseChar = "$"
-    characterPool = new CharacterPool(getSymbols())
-    if ( characterPool.includes(purchaseChar)) {console.error("chars must not contain purchase char")}
+    characterPool = new CharacterPool("$", getSymbols())
+    if ( characterPool.includes(characterPool.purchaseChar)) {console.error("chars must not contain purchase char")}
     upgrades = []    
 }
 
@@ -34,13 +33,13 @@ function displayScore() {
 
 function doGameSetup() {
     userInput.addEventListener("keydown", (e) => {verifyInput(e)})
-    const twoFingerTyper = new Upgrade("Two finger typer", 20, 3, 3/4, generateKey(3), 3, 1/3, .25)
+    const twoFingerTyper = new Upgrade("Two finger typer", 20, 3, 3/4, characterPool.generateKey(3), 3, 1/3, .25)
     upgrades.push(twoFingerTyper)
-    const practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 80, 20, 3/4, generateKey(5), 5, 2/3, .75)
+    const practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 80, 20, 3/4, characterPool.generateKey(5), 5, 2/3, .75)
     upgrades.push(practicedTwoFingerTyper)
-    const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 500, 4/5, generateKey(10), addLetters)
+    const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 500, 4/5, characterPool.generateKey(10), addLetters)
     upgrades.push(unlockLettersUpgrade)
-    const newTouchTyper = new Upgrade("New touch typer", 1000, 50, 3/4, generateKey(10), 10, 1, 1.5)
+    const newTouchTyper = new Upgrade("New touch typer", 1000, 50, 3/4, characterPool.generateKey(10), 10, 1, 1.5)
     upgrades.push(newTouchTyper)
     // const unlockWords = new OneTimeUpgrade("Unlock top 100 words", 3000, 3/5, generateKey(15), addWords)
     // upgrades.push(unlockWords)
@@ -166,14 +165,6 @@ function returnUpgradeByKey(input) {
             return upgrade
         }
     }
-}
-
-function generateKey( number) {
-    let aChars = [ purchaseChar]
-    for(let i=0; i< number; i++){
-        aChars.push(characterPool.getRandomChar())
-    }
-    return aChars.join("")
 }
 
 function attemptUpgradePurchase(upgrade) {

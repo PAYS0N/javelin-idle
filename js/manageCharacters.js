@@ -55,7 +55,8 @@ function getSymbols() {
 }
 
 class CharacterPool {
-    constructor(startingMap = {}) {
+    constructor(purchaseChar = "$", startingMap = {}) {
+        this.purchaseChar = purchaseChar
         this.pool = startingMap
     }
 
@@ -75,5 +76,13 @@ class CharacterPool {
 
     includes(character) {
         Object.keys(this.pool).includes(character)
+    }
+
+    generateKey(number) {
+        let aChars = [this.purchaseChar]
+        for(let i=0; i< number; i++){
+            aChars.push(this.getRandomChar())
+        }
+        return aChars.join("")
     }
 }
