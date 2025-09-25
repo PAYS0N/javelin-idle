@@ -13,29 +13,8 @@ function setConstants() {
     userInput = document.querySelector(".typing-input")
     goalDisplay = document.querySelector(".goal-value")
     purchaseChar = "$"
-    keyCodesToSymbols = {
-        "{": "{",
-        "}": "}",
-        "(": "(",
-        ")": ")",
-        "*": "*",
-        "+": "+",
-        "-": "-",
-        "=": "=",
-        ",": ",",
-        ".": ".",
-        "[": "[",
-        "]": "]",
-        ":": ":",
-        ";": ";",
-        "'": "'",
-        "\"": "\"",
-        "ArrowUp": "↑",
-        "ArrowDown": "↓",
-        "ArrowLeft": "←",
-        "ArrowRight": "→"
-    }
-    if ( Object.keys(keyCodesToSymbols).includes(purchaseChar)) {console.error("chars must not contain purchase char")}
+    characterPool = new CharacterPool(getSymbols())
+    if ( characterPool.includes(purchaseChar)) {console.error("chars must not contain purchase char")}
     upgrades = []    
 }
 
@@ -63,12 +42,14 @@ function doGameSetup() {
     upgrades.push(unlockLettersUpgrade)
     const newTouchTyper = new Upgrade("New touch typer", 1000, 50, 3/4, generateKey(10), 10, 1, 1.5)
     upgrades.push(newTouchTyper)
+    // const unlockWords = new OneTimeUpgrade("Unlock top 100 words", 3000, 3/5, generateKey(15), addWords)
+    // upgrades.push(unlockWords)
     lockedUpgrades = [...upgrades]
     runGameLogic()
 }
 
 function getInput(e) {
-    return userInput.value + keyCodesToSymbols[e.key]
+    return userInput.value + characterPool.getSymbolByKey(e.key)
 }
 
 function runGameLogic() {
@@ -105,7 +86,7 @@ function verifyInput(e) {
     }
     if(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)){
         e.preventDefault()
-        userInput.value += keyCodesToSymbols[e.key]
+        userInput.value += characterPool.getSymbolByKey(e.key)
     }
 
 }
@@ -130,7 +111,7 @@ function displayAutoScore(valueToAdd) {
         inputSuccess(autoInput)
     }
     for(let i=0; i<symbolsToAdd; i++){
-        autoInput.value += getRandomTypingChar()
+        autoInput.value += characterPool.getRandomChar()
     }
 }
 
@@ -151,15 +132,9 @@ function inputSuccess(htmlObject) {
 }
 
 function updateGoal() {
-    let symbolToType = getRandomTypingChar()
+    let symbolToType = characterPool.getRandomChar()
     goal = symbolToType
     displayGoal(symbolToType)
-}
-
-function getRandomTypingChar() {
-    let keyCodes = Object.keys(keyCodesToSymbols)
-    let nextIndex = Math.floor(Math.random() * keyCodes.length)
-    return keyCodesToSymbols[keyCodes[nextIndex]]
 }
 
 function displayGoal(symbol) {
@@ -194,11 +169,9 @@ function returnUpgradeByKey(input) {
 }
 
 function generateKey( number) {
-    let keyCodes = Object.keys(keyCodesToSymbols)
     let aChars = [ purchaseChar]
     for(let i=0; i< number; i++){
-        let nextIndex = Math.floor(Math.random() * keyCodes.length)
-        aChars.push(keyCodesToSymbols[keyCodes[nextIndex]])
+        aChars.push(characterPool.getRandomChar())
     }
     return aChars.join("")
 }
@@ -219,121 +192,8 @@ function attemptUpgradePurchase(upgrade) {
 
 function addLetters() {
     scoreMulti *= 1.5
-    letters = {
-        "a": "a",
-        "b": "b",
-        "c": "c",
-        "d": "d",
-        "e": "e",
-        "f": "f",
-        "g": "g",
-        "h": "h",
-        "i": "i",
-        "j": "j",
-        "k": "k",
-        "l": "l",
-        "m": "m",
-        "n": "n",
-        "o": "o",
-        "p": "p",
-        "q": "q",
-        "r": "r",
-        "s": "s",
-        "t": "t",
-        "u": "u",
-        "v": "v",
-        "w": "w",
-        "x": "x",
-        "y": "y",
-        "z": "z"
-    }
-    Object.assign(keyCodesToSymbols, letters)
+    characterPool.addLetters()
 }
 
-
-class Upgrade{
-
-    constructor(name, cost, costIncrease, thresholdMulti, key, keyLength, keyIncrease, value) {
-        this.name = name
-        this.cost = cost
-        this.costIncrease = costIncrease
-        this.html = this.createUpgradeHtml()
-        this.owned = 0
-        this.key = key
-        this.keyLength = keyLength
-        this.keyIncrease = keyIncrease
-        this.value = value
-        this.htmlDisplay = document.querySelector(".auto-input")
-        this.threshold = this.cost * thresholdMulti
-    }
-
-    display() {
-        this.html.querySelector(".upgrade-name").textContent = this.name
-        this.html.querySelector(".cost-value").textContent = this.cost
-        this.html.querySelector(".key-value").textContent = this.key
-        if (this.owned > 0) {
-            this.html.querySelector(".upgrade-owned").classList.remove("unavailable")
-            this.htmlDisplay.classList.remove("unavailable")
-            this.html.querySelector(".owned-value").textContent = this.owned
-        }
-    }
-
-    purchase() {
-        this.owned += 1;
-        this.cost += this.costIncrease
-        this.key = generateKey(this.keyLength + (this.owned * this.keyIncrease))
-    }
-
-    createUpgradeHtml() {
-        const upgrade = document.createElement('div')
-        upgrade.classList.add("upgrade")
-        upgrade.classList.add("unavailable")
-
-        const upgradeName = document.createElement('div')
-        upgradeName.classList.add("upgrade-name")
-        upgrade.appendChild(upgradeName)
-
-        let upgradeCost = this.createValueDisplayHtml("cost", "Cost: ")
-        upgrade.appendChild(upgradeCost)
-
-        let upgradeKey = this.createValueDisplayHtml("key", "Purchase: ")
-        upgrade.appendChild(upgradeKey)
-
-        let upgradeOwned = this.createValueDisplayHtml("owned", "Owned: ")
-        upgradeOwned.classList.add("unavailable")
-        upgrade.appendChild(upgradeOwned)
-
-        document.querySelector(".upgrades").appendChild(upgrade)
-        return upgrade
-    }
-
-    createValueDisplayHtml(phrase, text) {
-        const upgradeCost = document.createElement('div')
-        upgradeCost.classList.add("upgrade-"+phrase)
-
-            const costTitle = document.createElement('div')
-            costTitle.classList.add(phrase+"-title")
-            costTitle.textContent = text
-            upgradeCost.appendChild(costTitle)
-    
-            const costValue = document.createElement('div')
-            costValue.classList.add(phrase+"-value")
-            upgradeCost.appendChild(costValue)
-        return upgradeCost
-    }
-
-}
-
-class OneTimeUpgrade extends Upgrade {
-    constructor(name, cost, thresholdMulti, key, onPurchase) {
-        super(name, cost, 0, thresholdMulti, key, 0, 0, 0)
-        this.onPurchase = onPurchase
-    }
-
-    purchase() {
-        if (this.owned > 0) return;
-        this.owned = 1
-        this.onPurchase?.()
-        this.html.classList.add("unavailable")
-    }
-}
+// function addWords() {
+// }
