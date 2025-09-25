@@ -57,7 +57,7 @@ function doGameSetup() {
     userInput.addEventListener("keydown", (e) => {verifyInput(e)})
     const twoFingerTyper = new Upgrade("Two finger typer", 20, 3, 3/4, generateKey(3), 3, 1/3, .25)
     upgrades.push(twoFingerTyper)
-    const practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 100, 25, 4/5, generateKey(5), 5, 2/3, .75)
+    const practicedTwoFingerTyper = new Upgrade("Practiced two finger typer", 80, 25, 3/4, generateKey(5), 5, 2/3, .75)
     upgrades.push(practicedTwoFingerTyper)
     const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 500, 9/10, generateKey(10), addLetters)
     upgrades.push(unlockLettersUpgrade)
