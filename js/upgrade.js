@@ -12,6 +12,7 @@ class Upgrade{
         this.value = value
         this.htmlDisplay = document.querySelector(".auto-input")
         this.threshold = this.cost * thresholdMulti
+        this.firstPurchase = true
     }
 
     display() {
@@ -28,7 +29,11 @@ class Upgrade{
     purchase() {
         this.owned += 1;
         this.cost += this.costIncrease
-        this.key = generateKey(this.keyLength + (this.owned * this.keyIncrease))
+        this.key = characterPool.generateKey(this.keyLength + (this.owned * this.keyIncrease))
+        if (this.firstPurchase) {
+            this.firstPurchase = false
+            this.runAutoScoreUpdates()
+        }
     }
 
     createUpgradeHtml() {
@@ -67,6 +72,12 @@ class Upgrade{
             costValue.classList.add(phrase+"-value")
             upgradeCost.appendChild(costValue)
         return upgradeCost
+    }
+
+    runAutoScoreUpdates() {
+        score = score + this.value
+        displayAutoScore(this.value)
+        setTimeout(() => this.runAutoScoreUpdates(), 1000/this.owned)
     }
 
 }

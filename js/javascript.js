@@ -57,8 +57,6 @@ function runGameLogic() {
         displayUpgrades()
         displayScore()
     }, 100)
-    let timesPerSecond = 1
-    setInterval(()=>{addAutoScore(timesPerSecond)}, 1000/timesPerSecond)
 }
 
 function verifyInput(e) {
@@ -88,15 +86,6 @@ function verifyInput(e) {
         userInput.value += characterPool.getSymbolByKey(e.key)
     }
 
-}
-
-function addAutoScore(timesPerSecond) {
-    let valueToAdd = 0
-    for (upgrade of upgrades) {
-        valueToAdd = valueToAdd + upgrade.owned * upgrade.value / timesPerSecond
-    }
-    score = score + valueToAdd * scoreMulti
-    displayAutoScore(valueToAdd)
 }
 
 function displayAutoScore(valueToAdd) {
