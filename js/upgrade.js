@@ -1,6 +1,6 @@
 class Upgrade{
 
-    constructor(name, cost, costIncrease, thresholdMulti, key, keyLength, keyIncrease, value) {
+    constructor(name, cost, costIncrease, thresholdMulti, key, keyLength, keyIncrease, value, createDisplayHTML = true) {
         this.name = name
         this.cost = cost
         this.costIncrease = costIncrease
@@ -10,7 +10,7 @@ class Upgrade{
         this.keyLength = keyLength
         this.keyIncrease = keyIncrease
         this.value = value
-        this.htmlDisplay = this.createDisplayHTML()
+        this.htmlDisplay = createDisplayHTML ? this.createDisplayHTML() : null
         this.threshold = this.cost * thresholdMulti
         this.firstPurchase = true
         this.isRevealed = false
@@ -94,12 +94,12 @@ class Upgrade{
 
     runAutoScoreUpdates() {
         score = score + this.value
-        this.displayAutoScore(this.value)
+        this.displayAutoScore()
         setTimeout(() => this.runAutoScoreUpdates(), 1000/this.owned)
     }
 
-    displayAutoScore(valueToAdd) {
-        let symbolsToAdd = valueToAdd*4
+    displayAutoScore() {
+        let symbolsToAdd = this.value*4
         const autoInput = this.htmlDisplay
         let spaceRemaining = this.maxDigitsToDisplay - autoInput.value.length
         if (symbolsToAdd >= spaceRemaining) {
@@ -115,9 +115,8 @@ class Upgrade{
 
 class OneTimeUpgrade extends Upgrade {
     constructor(name, cost, thresholdMulti, key, onPurchase) {
-        super(name, cost, 0, thresholdMulti, key, 0, 0, 0)
+        super(name, cost, 0, thresholdMulti, key, 0, 0, 0, false)
         this.onPurchase = onPurchase
-        this.htmlDisplay.remove()
     }
 
     purchase() {
