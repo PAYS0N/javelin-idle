@@ -39,7 +39,7 @@ function doGameSetup() {
     upgrades.push(practicedTwoFingerTyper)
     const unlockLettersUpgrade = new OneTimeUpgrade("Unlock Letters", 500, 4/5, characterPool.generateKey(10), addLetters)
     upgrades.push(unlockLettersUpgrade)
-    const newTouchTyper = new Upgrade("New touch typer", 1000, 50, 3/4, characterPool.generateKey(10), 10, 1, 1.5)
+    const newTouchTyper = new Upgrade("New touch typer", 1000, 50, 3/4, characterPool.generateKey(10), 10, 1, 1.75)
     upgrades.push(newTouchTyper)
     // const unlockWords = new OneTimeUpgrade("Unlock top 100 words", 3000, 3/5, generateKey(15), addWords)
     // upgrades.push(unlockWords)

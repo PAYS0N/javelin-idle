@@ -13,6 +13,7 @@ class Upgrade{
         this.htmlDisplay = this.createDisplayHTML()
         this.threshold = this.cost * thresholdMulti
         this.firstPurchase = true
+        this.isRevealed = false
         this.maxDigitsToDisplay = 4
     }
 
@@ -20,10 +21,13 @@ class Upgrade{
         this.html.querySelector(".upgrade-name").textContent = this.name
         this.html.querySelector(".cost-value").textContent = this.cost
         this.html.querySelector(".key-value").textContent = this.key
-        if (this.owned > 0) {
+        this.html.querySelector(".chps-value").textContent = this.value * this.owned
+        this.html.querySelector(".owned-value").textContent = this.owned
+        if (this.owned > 0 && !this.isRevealed) {
             this.html.querySelector(".upgrade-owned").classList.remove("unavailable")
+            this.html.querySelector(".upgrade-chps").classList.remove("unavailable")
             this.htmlDisplay.classList.remove("unavailable")
-            this.html.querySelector(".owned-value").textContent = this.owned
+            this.isRevealed = true
         }
     }
 
@@ -64,6 +68,10 @@ class Upgrade{
         let upgradeOwned = this.createValueDisplayHtml("owned", "Owned: ")
         upgradeOwned.classList.add("unavailable")
         upgrade.appendChild(upgradeOwned)
+
+        let charPerSec = this.createValueDisplayHtml("chps", "Ch/s: ")
+        charPerSec.classList.add("unavailable")
+        upgrade.appendChild(charPerSec)
 
         document.querySelector(".upgrades").appendChild(upgrade)
         return upgrade

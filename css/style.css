@@ -150,7 +150,7 @@ body {
     text-align: center;
 }
 
-.upgrade-cost, .upgrade-key, .upgrade-owned {
+.upgrade-cost, .upgrade-key, .upgrade-owned, .upgrade-chps {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
