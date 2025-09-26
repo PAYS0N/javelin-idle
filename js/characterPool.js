@@ -75,7 +75,7 @@ class CharacterPool {
     }
 
     includes(character) {
-        Object.keys(this.pool).includes(character)
+        return Object.keys(this.pool).includes(character)
     }
 
     generateKey(number) {

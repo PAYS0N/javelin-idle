@@ -10,9 +10,10 @@ class Upgrade{
         this.keyLength = keyLength
         this.keyIncrease = keyIncrease
         this.value = value
-        this.htmlDisplay = document.querySelector(".auto-input")
+        this.htmlDisplay = this.createDisplayHTML()
         this.threshold = this.cost * thresholdMulti
         this.firstPurchase = true
+        this.maxDigitsToDisplay = 4
     }
 
     display() {
@@ -24,6 +25,15 @@ class Upgrade{
             this.htmlDisplay.classList.remove("unavailable")
             this.html.querySelector(".owned-value").textContent = this.owned
         }
+    }
+
+    createDisplayHTML() {
+        const inputs = document.querySelector(".auto-inputs")
+        const input = document.createElement("input")
+        input.classList.add("auto-input")
+        input.classList.add("unavailable")
+        inputs.appendChild(input)
+        return input
     }
 
     purchase() {
@@ -76,16 +86,30 @@ class Upgrade{
 
     runAutoScoreUpdates() {
         score = score + this.value
-        displayAutoScore(this.value)
+        this.displayAutoScore(this.value)
         setTimeout(() => this.runAutoScoreUpdates(), 1000/this.owned)
     }
 
+    displayAutoScore(valueToAdd) {
+        let symbolsToAdd = valueToAdd*4
+        const autoInput = this.htmlDisplay
+        let spaceRemaining = this.maxDigitsToDisplay - autoInput.value.length
+        if (symbolsToAdd >= spaceRemaining) {
+            symbolsToAdd = (symbolsToAdd - spaceRemaining) % this.maxDigitsToDisplay
+            autoInput.value = ""
+            inputSuccess(autoInput)
+        }
+        for(let i=0; i<symbolsToAdd; i++){
+            autoInput.value += characterPool.getRandomChar()
+        }
+    }
 }
 
 class OneTimeUpgrade extends Upgrade {
     constructor(name, cost, thresholdMulti, key, onPurchase) {
         super(name, cost, 0, thresholdMulti, key, 0, 0, 0)
         this.onPurchase = onPurchase
+        this.htmlDisplay.remove()
     }
 
     purchase() {

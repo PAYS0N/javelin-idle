@@ -88,21 +88,6 @@ function verifyInput(e) {
 
 }
 
-function displayAutoScore(valueToAdd) {
-    symbolsToAdd = valueToAdd*4
-    const autoInput = document.querySelector(".auto-input")
-    let maxNumberOfCharsInInput = 4
-    let spaceRemaining = maxNumberOfCharsInInput - autoInput.value.length
-    if (symbolsToAdd >= spaceRemaining) {
-        symbolsToAdd = (symbolsToAdd - spaceRemaining) % maxNumberOfCharsInInput
-        autoInput.value = ""
-        inputSuccess(autoInput)
-    }
-    for(let i=0; i<symbolsToAdd; i++){
-        autoInput.value += characterPool.getRandomChar()
-    }
-}
-
 function inputCorrect() {
     inputSuccess(userInput)
     userInput.value = ""
