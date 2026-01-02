@@ -1,172 +1,175 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
+	display: flex;
+	flex-direction: column;
+	height: 100dvh;
 }
 
-.header{
-    padding: 1.5rem;
+.header {
+	padding: 1.5rem;
 
-    text-align: center;
-    font-size: 4rem;
+	text-align: center;
+	font-size: 4rem;
 
-    background-color: lightgrey;
+	background-color: lightgrey;
 }
 
 .center {
-    flex: 1;
+	flex: 1;
 
-    display: flex;
-    flex-direction: column;
+	display: flex;
+	flex-direction: column;
 
-    align-items: center;
-    justify-content: space-around;
-    gap: 1rem;
+	align-items: center;
+	justify-content: space-around;
+	gap: 1rem;
 
 }
 
-.stat-displays{
-    display: flex;
-    flex-direction: row;
+.stat-displays {
+	display: flex;
+	flex-direction: row;
 
-    gap: 2rem;
+	gap: 2rem;
 }
 
-.score-display{
-    display: flex;
-    flex-direction: row;
+.score-display {
+	display: flex;
+	flex-direction: row;
 
-    font-size: 2.5rem;
+	font-size: 2.5rem;
 }
 
 .score-value {
-    width: 10rem;
+	width: 10rem;
 
-    text-align: center;
+	text-align: center;
 }
 
-.multi-display{
-    display: flex;
-    flex-direction: row;
+.multi-display {
+	display: flex;
+	flex-direction: row;
 
-    font-size: 2.5rem;
+	font-size: 2.5rem;
 }
 
 .multi-value {
-    width: 10rem;
+	width: 10rem;
 
-    text-align: center;
+	text-align: center;
 }
 
 
-.inputs{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+.inputs {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
 
-    width: 100%;
+	width: 100%;
 }
 
 .typing-input {
-    grid-row: 1;
-    grid-column: 2;
-    justify-self: center;
+	grid-row: 1;
+	grid-column: 2;
+	justify-self: center;
 
-    width: 100%;
+	width: 100%;
 
-    text-align: center;
-    font-size: 3rem;
+	text-align: center;
+	font-size: 3rem;
 
-    transition: background-color 0.2s ease;
+	transition: background-color 0.2s ease;
 }
 
 .auto-inputs {
-    grid-row: 1;
-    grid-column: 1;
-    justify-self: center;
+	grid-row: 1;
+	grid-column: 1;
+	justify-self: center;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 
-    gap: 1rem;
+	gap: 1rem;
 }
 
 .auto-input {
-    width: 40%;
+	width: 40%;
 
-    text-align: center;
-    font-size: 3rem;
-    letter-spacing: 2px;
+	text-align: center;
+	font-size: 3rem;
+	letter-spacing: 2px;
 
-    transition: background-color 0.2s ease;
+	transition: background-color 0.2s ease;
 }
 
 .green-background {
-    background-color: #b6fcb6;
+	background-color: #b6fcb6;
 }
 
-.goal-display{
-    display: flex;
-    flex-direction: row;
+.goal-display {
+	display: flex;
+	flex-direction: row;
 
-    gap: 1rem;
+	gap: 1rem;
 
-    font-size: 2.5rem;
+	font-size: 2.5rem;
 }
 
 .goal-value {
-    width: 3rem;
+	width: 3rem;
 
-    border: 2px solid black;
+	border: 2px solid black;
 
-    text-align: center;
+	text-align: center;
 }
 
-.upgrades{
-    display: flex;
-    flex-direction: row;
+.upgrades {
+	display: flex;
+	flex-direction: row;
 
-    gap: 1rem;
+	gap: 1rem;
 }
 
 .upgrade {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
 
-    padding: .7rem;
-    border: 2px solid black;
+	padding: .7rem;
+	border: 2px solid black;
 
-    font-size: 1.5rem;
+	font-size: 1.5rem;
 }
 
 .upgrade-name {
-    text-align: center;
+	text-align: center;
 }
 
-.upgrade-cost, .upgrade-key, .upgrade-owned, .upgrade-chps {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
+.upgrade-cost,
+.upgrade-key,
+.upgrade-owned,
+.upgrade-chps {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
 
-    gap: .7rem;
+	gap: .7rem;
 }
 
-.unavailable{
-    display: none;
+.unavailable {
+	display: none;
 }
 
 .footer {
-    padding: .5rem;
+	padding: .5rem;
 
-    text-align: center;
-    font-size: 1.5rem;
+	text-align: center;
+	font-size: 1.5rem;
 
-    background-color: lightgrey;
+	background-color: lightgrey;
 }

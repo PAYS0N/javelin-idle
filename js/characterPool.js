@@ -1,31 +1,31 @@
-function getLetters(){
+function getLetters() {
     return {
-    "a": "a",
-    "b": "b",
-    "c": "c",
-    "d": "d",
-    "e": "e",
-    "f": "f",
-    "g": "g",
-    "h": "h",
-    "i": "i",
-    "j": "j",
-    "k": "k",
-    "l": "l",
-    "m": "m",
-    "n": "n",
-    "o": "o",
-    "p": "p",
-    "q": "q",
-    "r": "r",
-    "s": "s",
-    "t": "t",
-    "u": "u",
-    "v": "v",
-    "w": "w",
-    "x": "x",
-    "y": "y",
-    "z": "z"
+        "a": "a",
+        "b": "b",
+        "c": "c",
+        "d": "d",
+        "e": "e",
+        "f": "f",
+        "g": "g",
+        "h": "h",
+        "i": "i",
+        "j": "j",
+        "k": "k",
+        "l": "l",
+        "m": "m",
+        "n": "n",
+        "o": "o",
+        "p": "p",
+        "q": "q",
+        "r": "r",
+        "s": "s",
+        "t": "t",
+        "u": "u",
+        "v": "v",
+        "w": "w",
+        "x": "x",
+        "y": "y",
+        "z": "z"
     }
 }
 
@@ -54,6 +54,7 @@ function getSymbols() {
     }
 }
 
+//should error if purchasechar is part of the pool
 class CharacterPool {
     constructor(purchaseChar = "$", startingMap = {}) {
         this.purchaseChar = purchaseChar
@@ -80,7 +81,7 @@ class CharacterPool {
 
     generateKey(number) {
         let aChars = [this.purchaseChar]
-        for(let i=0; i< number; i++){
+        for (let i = 0; i < number; i++) {
             aChars.push(this.getRandomChar())
         }
         return aChars.join("")
