@@ -18,7 +18,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 `addLetters()` merges `getLetters()` (a-z) into the pool, expanding what goals can be generated.
 
-`generateKey(n)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. This produces the typed sequence a player must enter to buy an upgrade.
+`generateKey(n, existingKeys?)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning. This guarantees uniqueness among all currently held keys at generation time.
 
 `getRandomChar()` picks a random value from the pool to serve as the next typing goal.
 
@@ -36,7 +36,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 - `characterPool` — a `CharacterPool` instance.
 - `upgrades` — ordered array of `Upgrade` / `OneTimeUpgrade` instances, created by `makeUpgrades()`.
 
-`makeUpgrades()` defines all upgrades in order:
+`makeUpgrades()` defines all upgrades in order, using a shared `Set<string>` passed to each `generateKey` call to guarantee all initial keys are unique:
 
 | Name | Base Cost | Cost Increase | Key Length | Key Length Increase | Auto-Score Value | Reveal Threshold |
 |------|-----------|--------------|------------|---------------------|-----------------|-----------------|
@@ -55,7 +55,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 `Upgrade` (upgrade.ts) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti` (fraction of cost at which the card is revealed to the player), `owned`, `key` (current purchase sequence), `keyLength`, `keyIncrease`, `value` (score added per auto-score tick), `started` (whether the auto-scoring interval is running).
 
-`purchase(characterPool)` increments `owned`, adds `costIncrease` to `cost`, and regenerates `key` with length `keyLength + (owned × keyIncrease)` — so purchase keys grow longer with each copy owned.
+`purchase(characterPool, existingKeys?)` increments `owned`, adds `costIncrease` to `cost`, and regenerates `key` with length `keyLength + (owned × keyIncrease)` — so purchase keys grow longer with each copy owned. `existingKeys` is forwarded to `generateKey` to prevent the new key from colliding with any currently held key.
 
 `OneTimeUpgrade extends Upgrade` with `owned` capped at 1 and an `onPurchase` callback that fires on purchase. Cost/key/value deltas are all 0. "Unlock Letters" passes `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×1.5 and calls `characterPool.addLetters()`.
 
@@ -75,7 +75,7 @@ Arrow keys append their unicode symbol to the input value (they do not fire the 
 
 **inputCorrect()** — flashes the input green, calls `game.scoreSuccess()`, clears the input, updates the score display, calls `game.updateGoal()`, and updates the goal display.
 
-**attemptUpgradePurchase(upgrade)** — if `score >= upgrade.cost`, deducts cost, calls `upgrade.purchase(characterPool)`, clears input, flashes success. Otherwise puts the input into error state (red/`---`).
+**attemptUpgradePurchase(upgrade)** — if `score >= upgrade.cost`, deducts cost, builds a `Set<string>` of all other upgrades' current keys, calls `upgrade.purchase(characterPool, existingKeys)`, clears input, flashes success. Otherwise puts the input into error state (red/`---`).
 
 **Game loop** — `runGameLogic()` sets a 100ms interval that calls `manageUpgrades()`, `display.revealUpgrades()`, `display.displayUpgrades()`, and `display.displayScore()`.
 

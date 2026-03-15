@@ -81,12 +81,17 @@ export class CharacterPool {
 		return Object.keys(this.pool).includes(character)
 	}
 
-	generateKey(number: number): string {
-		const aChars = [this.purchaseChar]
-		for (let i = 0; i < number; i++) {
-			aChars.push(this.getRandomChar())
-		}
-		return aChars.join("")
+	generateKey(number: number, existingKeys: Set<string> = new Set()): string {
+		let key: string
+		do {
+			const aChars = [this.purchaseChar]
+			for (let i = 0; i < number; i++) {
+				aChars.push(this.getRandomChar())
+			}
+			key = aChars.join("")
+		} while (existingKeys.has(key))
+		existingKeys.add(key)
+		return key
 	}
 
 	toString(): string {

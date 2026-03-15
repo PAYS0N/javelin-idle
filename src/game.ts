@@ -94,12 +94,13 @@ export class Game {
 	}
 
 	makeUpgrades(): void {
+		const usedKeys = new Set<string>()
 		const twoFingerTyper = new Upgrade(
 			"Two finger typer",
 			20,
 			3,
 			3 / 4,
-			this.characterPool.generateKey(3),
+			this.characterPool.generateKey(3, usedKeys),
 			3,
 			1 / 3,
 			.25)
@@ -109,7 +110,7 @@ export class Game {
 			80,
 			20,
 			3 / 4,
-			this.characterPool.generateKey(5),
+			this.characterPool.generateKey(5, usedKeys),
 			5,
 			2 / 3,
 			.75)
@@ -118,7 +119,7 @@ export class Game {
 			"Unlock Letters",
 			500,
 			4 / 5,
-			this.characterPool.generateKey(10),
+			this.characterPool.generateKey(10, usedKeys),
 			() => this.addLetters()
 		)
 		this.upgrades.push(unlockLettersUpgrade)
@@ -127,7 +128,7 @@ export class Game {
 			1000,
 			50,
 			3 / 4,
-			this.characterPool.generateKey(10),
+			this.characterPool.generateKey(10, usedKeys),
 			10,
 			1,
 			1.75)

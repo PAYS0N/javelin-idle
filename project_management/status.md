@@ -23,5 +23,4 @@
 | differenciate between '" and "' | medium | low |
 | add spacing to typing | low | medium |
 | use something other than setInterval for precision | low | medium |
-| ensure keys are unique | low | low |
 

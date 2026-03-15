@@ -1,6 +1,6 @@
 Compose a prompt for a new session task to do the indicated work item. 
 Include all the context someone would need, both practically code files and cdocs.
-The prompt should likely include an instruction to read project_management/manifest.md. 
+The prompt should likely include an instruction to read project_management/manifest.md and project_management/cdocs/system.md.
 Where applicable, the prompt should indicate that project_management/style.md should be followed when coding.
 The prompt should indicate the following workflow item in addition to the task definition: 
 

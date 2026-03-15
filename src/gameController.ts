@@ -102,7 +102,8 @@ export class GameController {
 			this.display.setValue("")
 			this.game.score -= upgrade.cost
 			this.display.displayScore()
-			upgrade.purchase(this.game.characterPool)
+			const existingKeys = new Set(this.game.upgrades.filter(u => u !== upgrade).map(u => u.key))
+			upgrade.purchase(this.game.characterPool, existingKeys)
 		}
 		else {
 			this.display.userInput.classList.add("error-state")

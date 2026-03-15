@@ -25,10 +25,10 @@ export class Upgrade {
 		this.started = false
 	}
 
-	purchase(characterPool: CharacterPool): void {
+	purchase(characterPool: CharacterPool, existingKeys: Set<string> = new Set()): void {
 		this.owned += 1
 		this.cost += this.costIncrease
-		this.key = characterPool.generateKey(this.keyLength + (this.owned * this.keyIncrease))
+		this.key = characterPool.generateKey(this.keyLength + (this.owned * this.keyIncrease), existingKeys)
 	}
 
 	toString(): string {
