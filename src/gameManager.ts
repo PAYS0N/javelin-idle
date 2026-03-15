@@ -71,6 +71,7 @@ export class GameManager {
 		this.game = new Game(gameObj)
 		this.gameDisplay.game = this.game
 		this.gameDisplay.upgradeDisplays = this.gameDisplay.createDisplays(this.game.upgrades)
+		this.gameDisplay.lockedUpgradeDisplays = [...this.gameDisplay.upgradeDisplays]
 		this.gameController.game = this.game
 		this.gameController.doPageSetup()
 	}

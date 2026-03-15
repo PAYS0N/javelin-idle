@@ -23,6 +23,13 @@ export class GameDisplay {
 	}
 
 	createDisplays(upgrades: Upgrade[]): UpgradeDisplay[] {
+		const autoInputs = safeQueryHTMLElement(".auto-inputs")
+		while (this.upgradesDisplay.firstChild) {
+			this.upgradesDisplay.removeChild(this.upgradesDisplay.firstChild)
+		}
+		while (autoInputs.firstChild) {
+			autoInputs.removeChild(autoInputs.firstChild)
+		}
 		const displays: UpgradeDisplay[] = []
 		for (const upgrade of upgrades) {
 			displays.push(this.createDisplayFromUpgrade(upgrade))
