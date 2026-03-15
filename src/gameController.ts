@@ -19,9 +19,15 @@ export class GameController {
 	runGameLogic(): void {
 		let lastTick = 0
 		const tick = (timestamp: number): void => {
-			if (timestamp - lastTick >= 100) {
+			const delta = timestamp - lastTick
+			if (delta >= 100) {
 				lastTick = timestamp
-				this.manageUpgrades()
+				for (const upgrade of this.game.upgrades) {
+					if (upgrade.owned > 0) {
+						this.game.score += upgrade.value * upgrade.owned * (delta / 1000)
+						this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
+					}
+				}
 				this.display.revealUpgrades()
 				this.display.displayUpgrades()
 				this.display.displayScore()
@@ -29,24 +35,6 @@ export class GameController {
 			requestAnimationFrame(tick)
 		}
 		requestAnimationFrame(tick)
-	}
-
-	manageUpgrades(): void {
-		for (const upgrade of this.game.upgrades) {
-			if (!upgrade.started && upgrade.owned > 0) {
-				this.runAutoScoring(upgrade)
-				upgrade.started = true
-			}
-		}
-	}
-
-	runAutoScoring(upgrade: Upgrade, lastTime: number = performance.now()): void {
-		const now = performance.now()
-		const elapsed = now - lastTime
-		const expectedInterval = 1000 / upgrade.owned
-		this.game.score += upgrade.value * (elapsed / expectedInterval)
-		this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
-		setTimeout(() => this.runAutoScoring(upgrade, now), expectedInterval)
 	}
 
 	getInput(e: KeyboardEvent): string {
