@@ -2,11 +2,11 @@
 
 ## Language & Tooling
 
-Vanilla JS (ES2020+), no bundler, no transpiler, no linter config. Files are loaded via `<script>` tags in dependency order in `index.html`. `// @ts-check` appears at the top of every JS file that contains a class; it enables VS Code's JSDoc-driven type checking without a build step.
+TypeScript (ES2020 target), compiled via `tsc` to `dist/`. Strict mode enabled. No bundler or linter config. Source files live in `src/`, compiled output in `dist/` (gitignored). The `npm run build` script runs `tsc`. The Docker build uses a multi-stage Dockerfile: a Node stage compiles TypeScript, then a Debian/Nginx stage serves the static output.
 
 ## Module Pattern
 
-Each file defines exactly one class (or one group of closely related functions in `characterPool.js`). There are no ES modules (`import`/`export`) — all classes are globals, available across files by load order. Free functions (`getSymbols`, `getLetters`) are module-level helpers defined before the class in the same file.
+ES modules (`import`/`export`). Each file defines exactly one class (or one group of closely related functions in `characterPool.ts`). The entry point is `src/main.ts`, loaded via `<script type="module" src="./dist/main.js">` in `index.html`. Import paths use `.js` extensions (required for ES module resolution of compiled output).
 
 ## Naming
 
@@ -16,11 +16,11 @@ Each file defines exactly one class (or one group of closely related functions i
 
 ## Type Annotations
 
-JSDoc annotations are used for method parameters and return types wherever the type is non-obvious or a DOM type is involved. `@param` and `@returns` tags are written on their own lines above the method. Property types are annotated inline with `/** @type {Type} */` directly above the assignment, including on properties initialized in the constructor body. Type annotations are present but not exhaustive — some short helper methods have none.
+Native TypeScript types are used throughout. Class properties are declared with type annotations in the class body. Method parameters and return types are annotated inline. `Record<string, string>` is used for string-keyed maps. `Record<string, unknown>` is used for loosely-typed deserialized JSON objects. Type assertions (`as`) are used sparingly for JSON parse results.
 
 ## DOM Access
 
-All DOM queries go through two global utility functions in `domUtils.js`: `safeQueryHTMLElement(identifier, base = document)` and `safeQueryHTMLElementInput(identifier, base = document)`. Both throw a `TypeError` with a descriptive message if the element is missing or the wrong type. Passing a base element as the second argument scopes the query to that subtree.
+All DOM queries go through two utility functions in `domUtils.ts`: `safeQueryHTMLElement(identifier, base = document)` and `safeQueryHTMLElementInput(identifier, base = document)`. Both throw a `TypeError` with a descriptive message if the element is missing or the wrong type. Passing a base element as the second argument scopes the query to that subtree.
 
 ## Formatting
 
@@ -36,7 +36,7 @@ Missing DOM elements throw `TypeError` via the `safeQuery*` wrappers. Invalid sa
 
 ## Serialization
 
-`toString()` methods on `Game`, `Upgrade`, and `CharacterPool` return `JSON.stringify(...)` of a plain object. `Game.toString()` is the top-level save format: a JSON string containing score, scoreMulti, goal, a nested JSON string for characterPool, and an array of nested JSON strings for each upgrade. Deserialization mirrors this in `createGameFromObj` / `createGameFromObj` with explicit `typeof` and `instanceof` guards before each assignment.
+`toString()` methods on `Game`, `Upgrade`, and `CharacterPool` return `JSON.stringify(...)` of a plain object. `Game.toString()` is the top-level save format: a JSON string containing score, scoreMulti, goal, a nested JSON string for characterPool, and an array of nested JSON strings for each upgrade. Deserialization mirrors this in `createGameFromObj` with explicit `typeof` and `instanceof` guards before each assignment.
 
 ## CSS
 
@@ -44,7 +44,7 @@ One stylesheet (`css/style.css`). No preprocessor, no CSS variables, no utility 
 
 ## HTML
 
-Single-page, static HTML (`index.html`). No templating engine. Upgrade cards and auto-input elements are created entirely in JS and appended to `.upgrades` and `.auto-inputs` at runtime — the HTML contains only the empty container divs. Script tags are in `<head>`: dependencies loaded synchronously in order, `javascript.js` loaded with `defer` so it runs after DOM parse. Attributes use double quotes. Indentation is tabs.
+Single-page, static HTML (`index.html`). No templating engine. Upgrade cards and auto-input elements are created entirely in TypeScript and appended to `.upgrades` and `.auto-inputs` at runtime — the HTML contains only the empty container divs. A single `<script type="module" src="./dist/main.js">` tag loads the compiled entry point. Attributes use double quotes. Indentation is tabs.
 
 ## Intervals & Timing
 

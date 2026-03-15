@@ -22,9 +22,12 @@
 |------|-------------|
 | [README.md](../README.md) | One-line project description: idle typing game for steno key practice |
 | [index.html](../index.html) | Main game page: score display, typing input, goal display, upgrade panel, save/load controls |
-| [Dockerfile](../Dockerfile) | Docker image definition for serving the game |
+| [Dockerfile](../Dockerfile) | Multi-stage Docker image: compiles TypeScript then serves with Nginx |
 | [docker-compose.yml](../docker-compose.yml) | Docker Compose config for local development server |
 | [nginx.conf](../nginx.conf) | Nginx config for serving static files in the Docker container |
+| [tsconfig.json](../tsconfig.json) | TypeScript compiler configuration: strict mode, ES2020 target, ES modules, outputs to dist/ |
+| [package.json](../package.json) | npm package config with TypeScript dev dependency and build script |
+| [.gitignore](../.gitignore) | Git ignore rules for node_modules/ and dist/ |
 
 ---
 
@@ -32,12 +35,12 @@
 
 | File | Description |
 |------|-------------|
-| [js/domUtils.js](../js/domUtils.js) | Global DOM utility functions: `safeQueryHTMLElement` and `safeQueryHTMLElementInput` with typed guards |
-| [js/game.js](../js/game.js) | Core game state: score, score multiplier, goal, character pool, and upgrades; handles serialization and deserialization |
-| [js/gameManager.js](../js/gameManager.js) | Top-level orchestrator: creates Game/GameDisplay/GameController, wires save/load/copy buttons, and starts the game |
-| [js/gameController.js](../js/gameController.js) | Input handling and game loop: verifies typed input against goal, triggers scoring, manages upgrade auto-scoring intervals, and handles upgrade purchases |
-| [js/upgrade.js](../js/upgrade.js) | Upgrade and OneTimeUpgrade classes: cost, purchase key, owned count, auto-score value, and purchase logic |
-| [js/characterPool.js](../js/characterPool.js) | CharacterPool class and symbol/letter maps: tracks typeable characters, generates random goals, and builds purchase key sequences |
+| [src/domUtils.ts](../src/domUtils.ts) | DOM utility functions: `safeQueryHTMLElement` and `safeQueryHTMLElementInput` with typed guards |
+| [src/game.ts](../src/game.ts) | Core game state: score, score multiplier, goal, character pool, and upgrades; handles serialization and deserialization |
+| [src/gameManager.ts](../src/gameManager.ts) | Top-level orchestrator: creates Game/GameDisplay/GameController, wires save/load/copy buttons, and starts the game |
+| [src/gameController.ts](../src/gameController.ts) | Input handling and game loop: verifies typed input against goal, triggers scoring, manages upgrade auto-scoring intervals, and handles upgrade purchases |
+| [src/upgrade.ts](../src/upgrade.ts) | Upgrade and OneTimeUpgrade classes: cost, purchase key, owned count, auto-score value, and purchase logic |
+| [src/characterPool.ts](../src/characterPool.ts) | CharacterPool class and symbol/letter maps: tracks typeable characters, generates random goals, and builds purchase key sequences |
 
 ---
 
@@ -45,8 +48,8 @@
 
 | File | Description |
 |------|-------------|
-| [js/gameDisplay.js](../js/gameDisplay.js) | GameDisplay class: manages DOM elements for score, goal, input feedback, and upgrade panels; creates and migrates upgrade display instances |
-| [js/upgradeDisplay.js](../js/upgradeDisplay.js) | upgradeDisplay class: renders individual upgrade cards (cost, key, owned count, ch/s), reveals cards at score thresholds, and animates auto-typing input |
+| [src/gameDisplay.ts](../src/gameDisplay.ts) | GameDisplay class: manages DOM elements for score, goal, input feedback, and upgrade panels; creates and migrates upgrade display instances |
+| [src/upgradeDisplay.ts](../src/upgradeDisplay.ts) | UpgradeDisplay class: renders individual upgrade cards (cost, key, owned count, ch/s), reveals cards at score thresholds, and animates auto-typing input |
 
 ---
 
@@ -58,8 +61,16 @@
 
 ---
 
+## CI/CD
+
+| File | Description |
+|------|-------------|
+| [.github/workflows/deploy.yml](../.github/workflows/deploy.yml) | GitHub Actions workflow: compiles TypeScript and deploys to GitHub Pages |
+
+---
+
 ## Entry Point
 
 | File | Description |
 |------|-------------|
-| [js/javascript.js](../js/javascript.js) | Entry point: instantiates GameManager and calls startGame on window load |
+| [src/main.ts](../src/main.ts) | Entry point: instantiates GameManager and calls startGame on window load |

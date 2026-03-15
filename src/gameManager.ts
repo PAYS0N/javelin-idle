@@ -1,18 +1,26 @@
-// @ts-check
-class GameManager {
+import { safeQueryHTMLElement, safeQueryHTMLElementInput } from "./domUtils.js"
+import { Game } from "./game.js"
+import { GameDisplay } from "./gameDisplay.js"
+import { GameController } from "./gameController.js"
+
+export class GameManager {
+	game: Game
+	gameDisplay: GameDisplay
+	gameController: GameController
+
 	constructor() {
 		this.game = new Game()
 		this.gameDisplay = new GameDisplay(this.game)
 		this.gameController = new GameController(this.game, this.gameDisplay)
 	}
 
-	startGame() {
+	startGame(): void {
 		this.setupListeners()
 		this.gameController.doGameSetup()
 		this.gameController.doPageSetup()
 	}
 
-	setupListeners() {
+	setupListeners(): void {
 		safeQueryHTMLElement('#copy-game-save').addEventListener("click", () => {
 			const saveString = this.getSaveString()
 			navigator.clipboard.writeText(saveString)
@@ -34,27 +42,19 @@ class GameManager {
 		})
 	}
 
-	/**
-	 *
-	 * @returns {string}
-	 */
-	getSaveString() {
+	getSaveString(): string {
 		return this.game.toString()
 	}
 
-	saveGame() {
+	saveGame(): void {
 		const gameJson = this.game.toString()
 		localStorage.setItem("gameSave", gameJson)
 	}
 
-	/**
-	 *
-	 * @returns {false | void}
-	 */
-	loadGame() {
+	loadGame(): false | void {
 		const saveString = localStorage.getItem("gameSave")
 		if (saveString) {
-			const gameObj = JSON.parse(saveString)
+			const gameObj = JSON.parse(saveString) as Record<string, unknown>
 			this.createGameFromObj(gameObj)
 		}
 		else {
@@ -62,25 +62,16 @@ class GameManager {
 		}
 	}
 
-	/**
-	 *
-	 * @param {string} saveString
-	 */
-	loadGameFromString(saveString) {
-		const gameObj = JSON.parse(saveString)
+	loadGameFromString(saveString: string): void {
+		const gameObj = JSON.parse(saveString) as Record<string, unknown>
 		this.createGameFromObj(gameObj)
 	}
 
-	/**
-	 *
-	 * @param {object} gameObj
-	 */
-	createGameFromObj(gameObj) {
+	createGameFromObj(gameObj: Record<string, unknown>): void {
 		this.game = new Game(gameObj)
 		this.gameDisplay.game = this.game
 		this.gameDisplay.upgradeDisplays = this.gameDisplay.createDisplays(this.game.upgrades)
 		this.gameController.game = this.game
 		this.gameController.doPageSetup()
 	}
-
 }

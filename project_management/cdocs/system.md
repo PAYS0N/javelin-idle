@@ -1,12 +1,12 @@
 # System Context: Javelin Idle
 
-Javelin Idle is a browser-based idle/clicker typing game. The player types symbol sequences displayed on screen to earn score ("Characters Typed"), then spends score on upgrades that passively generate score over time. The game is designed to train stenography key combinations for programming symbols. All logic is vanilla JS with no framework or build step.
+Javelin Idle is a browser-based idle/clicker typing game. The player types symbol sequences displayed on screen to earn score ("Characters Typed"), then spends score on upgrades that passively generate score over time. The game is designed to train stenography key combinations for programming symbols. All logic is TypeScript compiled to ES modules with no framework.
 
 ---
 
 ## Entry & Initialization
 
-`javascript.js` is loaded with `defer` and runs `new GameManager().startGame()` on `window.onload`. Script load order in `index.html` is significant: `domUtils.js` → `characterPool.js` → `upgrade.js` → `upgradeDisplay.js` → `game.js` → `gameDisplay.js` → `gameController.js` → `gameManager.js` → `javascript.js`.
+`main.ts` is the entry point, loaded via `<script type="module" src="./dist/main.js">` in `index.html`. It runs `new GameManager().startGame()` on `window.onload`. Module imports handle dependency resolution — no manual script ordering required.
 
 `GameManager` constructor creates `Game`, `GameDisplay(game)`, and `GameController(game, display)` in order. `startGame()` calls `setupListeners()`, `gameController.doGameSetup()`, and `gameController.doPageSetup()`.
 
@@ -14,7 +14,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 ## Character Pool
 
-`CharacterPool` (characterPool.js) holds the set of typeable characters as a `pool` object mapping keyboard key strings to display symbols. The starting pool is `getSymbols()`: programming punctuation (`{}()`, `*+-=,.[]`, `:;'"`) plus four arrow keys mapped to unicode arrows (`↑↓←→`). The purchase character `$` is reserved and excluded from the pool.
+`CharacterPool` (characterPool.ts) holds the set of typeable characters as a `pool` object (`Record<string, string>`) mapping keyboard key strings to display symbols. The starting pool is `getSymbols()`: programming punctuation (`{}()`, `*+-=,.[]`, `:;'"`) plus four arrow keys mapped to unicode arrows (`↑↓←→`). The purchase character `$` is reserved and excluded from the pool.
 
 `addLetters()` merges `getLetters()` (a-z) into the pool, expanding what goals can be generated.
 
@@ -28,7 +28,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 ## Game State
 
-`Game` (game.js) owns all mutable game state:
+`Game` (game.ts) owns all mutable game state:
 
 - `score` — integer, incremented by `scoreMulti` on each successful type, decremented on upgrade purchase.
 - `scoreMulti` — starts at 1; multiplied by 1.5 when "Unlock Letters" is purchased.
@@ -53,7 +53,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 ## Upgrades
 
-`Upgrade` (upgrade.js) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti` (fraction of cost at which the card is revealed to the player), `owned`, `key` (current purchase sequence), `keyLength`, `keyIncrease`, `value` (score added per auto-score tick), `started` (whether the auto-scoring interval is running).
+`Upgrade` (upgrade.ts) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti` (fraction of cost at which the card is revealed to the player), `owned`, `key` (current purchase sequence), `keyLength`, `keyIncrease`, `value` (score added per auto-score tick), `started` (whether the auto-scoring interval is running).
 
 `purchase(characterPool)` increments `owned`, adds `costIncrease` to `cost`, and regenerates `key` with length `keyLength + (owned × keyIncrease)` — so purchase keys grow longer with each copy owned.
 
@@ -63,7 +63,7 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 ## Input & Game Loop
 
-`GameController` (gameController.js) handles all interaction:
+`GameController` (gameController.ts) handles all interaction:
 
 **Input verification** — `keydown` on the typing input calls `verifyInput(e)`. If the input field is in error state, it is cleared first. The current input value plus the symbol mapped from `e.key` (via `characterPool.getSymbolByKey`) forms the candidate string. Three checks run in order:
 
@@ -85,19 +85,19 @@ Arrow keys append their unicode symbol to the input value (they do not fire the 
 
 ## Display
 
-`GameDisplay` (gameDisplay.js) owns all DOM references and `upgradeDisplay` instances. On construction it queries `.score-value`, `.typing-input`, `.goal-value`, `.upgrades`, and `.auto-inputs`. It creates one `upgradeDisplay` per upgrade via `createDisplayFromUpgrade`, which also appends the upgrade card HTML and an auto-input element to the DOM.
+`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. On construction it queries `.score-value`, `.typing-input`, `.goal-value`, `.upgrades`, and `.auto-inputs`. It creates one `UpgradeDisplay` per upgrade via `createDisplayFromUpgrade`, which also appends the upgrade card HTML and an auto-input element to the DOM.
 
 `revealUpgrades()` iterates `lockedUpgradeDisplays` and calls `display.reveal()` (removes `unavailable` class) for any whose `threshold ≤ game.score`. Revealed displays are spliced from the locked list.
 
 `displayUpgrades()` calls `display.display()` on every upgrade display, updating cost, key, owned count, and ch/s values. If `owned > 0` and not yet revealed at the display level, it un-hides the owned/chps rows and the auto-input field.
 
-`upgradeDisplay` (upgradeDisplay.js) manages a single upgrade card and its associated auto-input element. `displayAutoScore(characterPool)` is called by `runAutoScoring` to animate the auto-input: it appends `upgrade.value × 4` random symbols, wrapping and flashing green when the 4-character display limit is reached.
+`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its associated auto-input element. `displayAutoScore(characterPool)` is called by `runAutoScoring` to animate the auto-input: it appends `upgrade.value × 4` random symbols, wrapping and flashing green when the 4-character display limit is reached.
 
 ---
 
 ## Save / Load
 
-`GameManager` (gameManager.js) wires three buttons:
+`GameManager` (gameManager.ts) wires three buttons:
 
 - **Save game** — calls `game.toString()` and writes to `localStorage["gameSave"]`.
 - **Copy game save string** — calls `game.toString()` and writes to clipboard via `navigator.clipboard.writeText`.
@@ -117,4 +117,4 @@ The page has three layout regions: `.header` (title + save/load controls), `.cen
 
 ## Infrastructure
 
-The game is pure static files with no build step, bundler, or transpiler. Primary deployment target is GitHub Pages. A Docker setup (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) is also provided for local development, serving the same static files via nginx.
+TypeScript source lives in `src/`, compiled via `tsc` to `dist/` (gitignored). `npm run build` runs the compiler. Primary deployment target is GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`) that compiles TypeScript and deploys. A Docker setup (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) is also provided for local development — the Dockerfile uses a multi-stage build (Node for compilation, Debian/Nginx for serving).

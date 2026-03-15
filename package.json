@@ -1,0 +1,24 @@
+{
+  "name": "idle-game",
+  "version": "1.0.0",
+  "description": "Developing an idle typing game both to help me learn the steno versions of common programming keys, and to practice web development",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PAYS0N/javelin-idle.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PAYS0N/javelin-idle/issues"
+  },
+  "homepage": "https://github.com/PAYS0N/javelin-idle#readme",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

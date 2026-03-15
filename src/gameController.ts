@@ -1,24 +1,22 @@
-// @ts-check
+import { Game } from "./game.js"
+import { GameDisplay } from "./gameDisplay.js"
+import { Upgrade, OneTimeUpgrade } from "./upgrade.js"
 
-class GameController {
-	/**
-	 * 
-	 * @param {Game} game 
-	 * @param {GameDisplay} display 
-	 */
-	constructor(game, display) {
-		/** @type {Game} */
+export class GameController {
+	game: Game
+	display: GameDisplay
+
+	constructor(game: Game, display: GameDisplay) {
 		this.game = game
-		/** @type {GameDisplay} */
 		this.display = display
 	}
 
-	doGameSetup() {
+	doGameSetup(): void {
 		this.display.userInput.addEventListener("keydown", (e) => { this.verifyInput(e) })
 		this.runGameLogic()
 	}
 
-	runGameLogic() {
+	runGameLogic(): void {
 		setInterval(() => {
 			this.manageUpgrades()
 			this.display.revealUpgrades()
@@ -27,7 +25,7 @@ class GameController {
 		}, 100)
 	}
 
-	manageUpgrades() {
+	manageUpgrades(): void {
 		for (const upgrade of this.game.upgrades) {
 			if (!upgrade.started && upgrade.owned > 0) {
 				this.runAutoScoring(upgrade)
@@ -36,37 +34,22 @@ class GameController {
 		}
 	}
 
-	/**
-	 * 
-	 * @param {Upgrade} upgrade 
-	 */
-	runAutoScoring(upgrade) {
+	runAutoScoring(upgrade: Upgrade): void {
 		this.game.score = this.game.score + upgrade.value
 		this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
 		setTimeout(() => this.runAutoScoring(upgrade), 1000 / upgrade.owned)
 	}
 
-
-	/**
-	 * 
-	 * @param {KeyboardEvent} e 
-	 * @returns {string}
-	 */
-	getInput(e) {
+	getInput(e: KeyboardEvent): string {
 		return this.display.getValue() + this.game.characterPool.getSymbolByKey(e.key)
 	}
 
-	/**
-	 * 
-	 * @param {KeyboardEvent} e 
-	 * @returns {void}
-	 */
-	verifyInput(e) {
+	verifyInput(e: KeyboardEvent): void {
 		if (this.display.userInput.classList.contains("error-state")) {
 			this.display.userInput.value = ""
 			this.display.userInput.classList.remove("error-state")
 		}
-		let input = this.getInput(e)
+		const input = this.getInput(e)
 		if (input === "ababvoidgloom*") {
 			e.preventDefault()
 			this.game.score = this.game.score + 1000
@@ -93,7 +76,7 @@ class GameController {
 		}
 	}
 
-	inputCorrect() {
+	inputCorrect(): void {
 		this.display.showInputSuccess()
 		this.game.scoreSuccess()
 		this.display.setValue("")
@@ -102,28 +85,18 @@ class GameController {
 		this.display.displayGoal(nextGoal)
 	}
 
-	/**
-	 * 
-	 * @param {string} input 
-	 * @returns {Boolean}
-	 */
-	isInputScorable(input) {
+	isInputScorable(input: string): boolean {
 		return input === this.game.goal
 	}
 
-
-	doPageSetup() {
+	doPageSetup(): void {
 		this.display.userInput.focus()
 		this.display.displayScore()
 		const nextGoal = this.game.updateGoal()
 		this.display.displayGoal(nextGoal)
 	}
 
-	/**
-	 * 
-	 * @param {Upgrade} upgrade 
-	 */
-	attemptUpgradePurchase(upgrade) {
+	attemptUpgradePurchase(upgrade: Upgrade): void {
 		if (this.game.score >= upgrade.cost) {
 			this.display.showInputSuccess()
 			this.display.setValue("")

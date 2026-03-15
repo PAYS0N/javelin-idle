@@ -1,45 +1,36 @@
-// @ts-check
+import { safeQueryHTMLElement } from "./domUtils.js"
+import { Game } from "./game.js"
+import { Upgrade } from "./upgrade.js"
+import { UpgradeDisplay } from "./upgradeDisplay.js"
 
-class GameDisplay {
-	/**
-	 *
-	 * @param {Game} game
-	 */
-	constructor(game) {
-		/** @type {Game} */
+export class GameDisplay {
+	game: Game
+	scoreDisplay: HTMLElement
+	userInput: HTMLInputElement
+	goalDisplay: HTMLElement
+	upgradesDisplay: HTMLElement
+	upgradeDisplays: UpgradeDisplay[]
+	lockedUpgradeDisplays: UpgradeDisplay[]
+
+	constructor(game: Game) {
 		this.game = game
-		/** @type {HTMLElement} */
 		this.scoreDisplay = safeQueryHTMLElement(".score-value")
-		/** @type {HTMLInputElement} */
-		this.userInput = safeQueryHTMLElementInput(".typing-input")
-		/** @type {HTMLElement} */
+		this.userInput = document.querySelector(".typing-input") as HTMLInputElement
 		this.goalDisplay = safeQueryHTMLElement(".goal-value")
-		/** @type {HTMLElement} */
 		this.upgradesDisplay = safeQueryHTMLElement(".upgrades")
-		/** @type {UpgradeDisplay[]} */
 		this.upgradeDisplays = this.createDisplays(game.upgrades)
-		/** @type {UpgradeDisplay[]} */
 		this.lockedUpgradeDisplays = [...this.upgradeDisplays]
 	}
 
-	/**
-	 *
-	 * @param {Upgrade[]} upgrades
-	 * @returns {UpgradeDisplay[]}
-	 */
-	createDisplays(upgrades) {
-		let displays = []
+	createDisplays(upgrades: Upgrade[]): UpgradeDisplay[] {
+		const displays: UpgradeDisplay[] = []
 		for (const upgrade of upgrades) {
 			displays.push(this.createDisplayFromUpgrade(upgrade))
 		}
 		return displays
 	}
 
-	/**
-	 *
-	 * @param {Upgrade[]} upgrades
-	 */
-	migrateDisplays(upgrades) {
+	migrateDisplays(upgrades: Upgrade[]): void {
 		let i = 0
 		for (const display of this.upgradeDisplays) {
 			display.upgrade = upgrades[i]
@@ -49,11 +40,7 @@ class GameDisplay {
 		}
 	}
 
-	/**
-	 *
-	 * @param {Upgrade} upgrade
-	 */
-	createDisplayFromUpgrade(upgrade) {
+	createDisplayFromUpgrade(upgrade: Upgrade): UpgradeDisplay {
 		const display = new UpgradeDisplay(
 			upgrade,
 			this.createUpdateHtml(upgrade.name),
@@ -63,12 +50,7 @@ class GameDisplay {
 		return display
 	}
 
-	/**
-	 *
-	 * @param {string} input
-	 * @returns {UpgradeDisplay}
-	 */
-	getDisplayByName(input) {
+	getDisplayByName(input: string): UpgradeDisplay {
 		for (const display of this.upgradeDisplays) {
 			if (input === display.upgrade.name) {
 				return display
@@ -77,7 +59,7 @@ class GameDisplay {
 		throw new Error(`No display found with upgrade with key ${input}`)
 	}
 
-	displayScore() {
+	displayScore(): void {
 		this.scoreDisplay.textContent = String(Math.floor(this.game.score))
 		if (this.game.scoreMulti > 1) {
 			safeQueryHTMLElement('.multi-display').classList.remove("unavailable")
@@ -85,7 +67,7 @@ class GameDisplay {
 		}
 	}
 
-	showInputSuccess() {
+	showInputSuccess(): void {
 		this.userInput.classList.add('green-background')
 
 		setTimeout(() => {
@@ -93,37 +75,25 @@ class GameDisplay {
 		}, 200)
 	}
 
-	/**
-	 *
-	 * @param {string} symbol
-	 */
-	displayGoal(symbol) {
+	displayGoal(symbol: string): void {
 		this.goalDisplay.textContent = symbol
 	}
 
-	displayUpgrades() {
+	displayUpgrades(): void {
 		for (const display of this.upgradeDisplays) {
 			display.display()
 		}
 	}
 
-	/**
-	 *
-	 * @returns {string}
-	 */
-	getValue() {
+	getValue(): string {
 		return this.userInput.value
 	}
 
-	/**
-	 *
-	 * @param {string} value
-	 */
-	setValue(value) {
+	setValue(value: string): void {
 		this.userInput.value = value
 	}
 
-	revealUpgrades() {
+	revealUpgrades(): void {
 		for (const display of this.lockedUpgradeDisplays) {
 			if (this.game.score >= display.threshold) {
 				display.reveal()
@@ -132,12 +102,7 @@ class GameDisplay {
 		}
 	}
 
-	/**
-	 *
-	 * @returns {HTMLDivElement}
-	 * @param {string} name
-	 */
-	createUpdateHtml(name) {
+	createUpdateHtml(name: string): HTMLDivElement {
 		const upgrade = document.createElement('div')
 		upgrade.classList.add("upgrade")
 		upgrade.classList.add("unavailable")
@@ -147,17 +112,17 @@ class GameDisplay {
 		upgradeName.textContent = name
 		upgrade.appendChild(upgradeName)
 
-		let upgradeCost = this.createValueDisplayHtml("cost", "Cost: ")
+		const upgradeCost = this.createValueDisplayHtml("cost", "Cost: ")
 		upgrade.appendChild(upgradeCost)
 
-		let upgradeKey = this.createValueDisplayHtml("key", "Purchase: ")
+		const upgradeKey = this.createValueDisplayHtml("key", "Purchase: ")
 		upgrade.appendChild(upgradeKey)
 
-		let upgradeOwned = this.createValueDisplayHtml("owned", "Owned: ")
+		const upgradeOwned = this.createValueDisplayHtml("owned", "Owned: ")
 		upgradeOwned.classList.add("unavailable")
 		upgrade.appendChild(upgradeOwned)
 
-		let charPerSec = this.createValueDisplayHtml("chps", "Ch/s: ")
+		const charPerSec = this.createValueDisplayHtml("chps", "Ch/s: ")
 		charPerSec.classList.add("unavailable")
 		upgrade.appendChild(charPerSec)
 
@@ -165,13 +130,7 @@ class GameDisplay {
 		return upgrade
 	}
 
-	/**
-	 *
-	 * @param {string} phrase
-	 * @param {string} text
-	 * @returns
-	 */
-	createValueDisplayHtml(phrase, text) {
+	createValueDisplayHtml(phrase: string, text: string): HTMLDivElement {
 		const upgradeCost = document.createElement('div')
 		upgradeCost.classList.add("upgrade-" + phrase)
 
@@ -186,7 +145,7 @@ class GameDisplay {
 		return upgradeCost
 	}
 
-	createDisplayHTML() {
+	createDisplayHTML(): HTMLInputElement {
 		const inputs = safeQueryHTMLElement(".auto-inputs")
 		const input = document.createElement("input")
 		input.classList.add("auto-input")
@@ -194,5 +153,4 @@ class GameDisplay {
 		inputs.appendChild(input)
 		return input
 	}
-
 }

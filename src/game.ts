@@ -1,16 +1,18 @@
-// @ts-check
-class Game {
+import { CharacterPool, getSymbols } from "./characterPool.js"
+import { Upgrade, OneTimeUpgrade } from "./upgrade.js"
 
-	constructor(gameObj = null) {
-		/** @type {number} */
+export class Game {
+	score: number
+	scoreMulti: number
+	goal: string
+	characterPool: CharacterPool
+	upgrades: Upgrade[]
+
+	constructor(gameObj: Record<string, unknown> | null = null) {
 		this.score = 0
-		/** @type {number} */
 		this.scoreMulti = 1
-		/** @type {string} */
 		this.goal = ""
-		/** @type {CharacterPool} */
 		this.characterPool = new CharacterPool("$", getSymbols())
-		/** @type {Upgrade[]} */
 		this.upgrades = []
 		if (gameObj) {
 			this.createGameFromObj(gameObj)
@@ -18,28 +20,18 @@ class Game {
 		else {
 			this.createGameFromEmpty()
 		}
-
 	}
 
-	createGameFromEmpty() {
-		/** @type {number} */
+	createGameFromEmpty(): void {
 		this.score = 0
-		/** @type {number} */
 		this.scoreMulti = 1
-		/** @type {string} */
 		this.goal = ""
-		/** @type {CharacterPool} */
 		this.characterPool = new CharacterPool("$", getSymbols())
-		/** @type {Upgrade[]} */
 		this.upgrades = []
 		this.makeUpgrades()
 	}
 
-	/**
-	 * 
-	 * @param {object} gameObj 
-	 */
-	createGameFromObj(gameObj) {
+	createGameFromObj(gameObj: Record<string, unknown>): void {
 		if ("score" in gameObj && typeof gameObj.score === "number") {
 			this.score = Math.floor(gameObj.score)
 		}
@@ -59,7 +51,7 @@ class Game {
 			throw new Error("Create game object invalid")
 		}
 		if ("characterPool" in gameObj && typeof gameObj.characterPool === "string") {
-			const jsonPool = JSON.parse(gameObj.characterPool)
+			const jsonPool = JSON.parse(gameObj.characterPool) as [string, Record<string, string>]
 			this.characterPool = new CharacterPool(jsonPool[0], jsonPool[1])
 		}
 		else {
@@ -70,10 +62,10 @@ class Game {
 			this.makeUpgrades()
 			let i = 0
 			for (const upgrade of this.upgrades) {
-				const gameUpgrade = JSON.parse(gameObj.upgrades[i])
-				upgrade.cost = gameUpgrade.cost
-				upgrade.owned = gameUpgrade.owned
-				upgrade.key = gameUpgrade.key
+				const gameUpgrade = JSON.parse(gameObj.upgrades[i] as string) as Record<string, unknown>
+				upgrade.cost = gameUpgrade.cost as number
+				upgrade.owned = gameUpgrade.owned as number
+				upgrade.key = gameUpgrade.key as string
 				if (upgrade instanceof OneTimeUpgrade && upgrade.owned > 0) {
 					console.log(upgrade)
 					upgrade.onPurchase()
@@ -86,28 +78,22 @@ class Game {
 		}
 	}
 
-	/**
-	 * @returns {string}
-	 */
-	toString() {
-		const gameObj = {}
+	toString(): string {
+		const gameObj: Record<string, unknown> = {}
 		gameObj.score = this.score
 		gameObj.scoreMulti = this.scoreMulti
 		gameObj.goal = this.goal
 		gameObj.characterPool = this.characterPool.toString()
-		/** @type {string[]} */
-		gameObj.upgrades = []
+		const upgradeStrings: string[] = []
 		for (const upgrade of this.upgrades) {
 			const upgradeObj = upgrade.toString()
-			gameObj.upgrades.push(upgradeObj)
+			upgradeStrings.push(upgradeObj)
 		}
+		gameObj.upgrades = upgradeStrings
 		return JSON.stringify(gameObj)
 	}
 
-	/**
- * @returns {undefined}
- */
-	makeUpgrades() {
+	makeUpgrades(): void {
 		const twoFingerTyper = new Upgrade(
 			"Two finger typer",
 			20,
@@ -146,24 +132,14 @@ class Game {
 			1,
 			1.75)
 		this.upgrades.push(newTouchTyper)
-		// const unlockWords = new OneTimeUpgrade("Unlock top 100 words", 3000, 3/5, generateKey(15), addWords)
-		// upgrades.push(unlockWords)
 	}
 
-	/**
- * @returns {undefined}
- */
-	addLetters() {
+	addLetters(): void {
 		this.scoreMulti *= 1.5
 		this.characterPool.addLetters()
 	}
 
-	/**
-	 * 
-	 * @param {string} input 
-	 * @returns {Upgrade | undefined}
-	 */
-	returnUpgradeByKey(input) {
+	returnUpgradeByKey(input: string): Upgrade | undefined {
 		for (const upgrade of this.upgrades) {
 			if (input === upgrade.key) {
 				return upgrade
@@ -171,18 +147,12 @@ class Game {
 		}
 	}
 
-	/**
- * @returns {undefined}
- */
-	scoreSuccess() {
+	scoreSuccess(): void {
 		this.score += this.scoreMulti
 	}
 
-	/**
-	 * @returns {string}
-	 */
-	updateGoal() {
-		let symbolToType = this.characterPool.getRandomChar()
+	updateGoal(): string {
+		const symbolToType = this.characterPool.getRandomChar()
 		this.goal = symbolToType
 		return symbolToType
 	}

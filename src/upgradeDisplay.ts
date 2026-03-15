@@ -1,14 +1,17 @@
-// @ts-check
+import { safeQueryHTMLElement } from "./domUtils.js"
+import { CharacterPool } from "./characterPool.js"
+import { Upgrade } from "./upgrade.js"
 
-class UpgradeDisplay {
-	/**
-	 *
-	 * @param {Upgrade} upgrade
-	 * @param {HTMLElement} displayHtml
-	 * @param {HTMLInputElement} autoTypeHtml
-	 * @param {number} thresholdMulti
-	 */
-	constructor(upgrade, displayHtml, autoTypeHtml, thresholdMulti) {
+export class UpgradeDisplay {
+	upgrade: Upgrade
+	purchaseHtml: HTMLElement
+	autoTypeHtml: HTMLInputElement
+	firstPurchase: boolean
+	isRevealed: boolean
+	maxDigitsToDisplay: number
+	threshold: number
+
+	constructor(upgrade: Upgrade, displayHtml: HTMLElement, autoTypeHtml: HTMLInputElement, thresholdMulti: number) {
 		this.upgrade = upgrade
 		this.purchaseHtml = displayHtml
 		this.autoTypeHtml = autoTypeHtml
@@ -16,10 +19,9 @@ class UpgradeDisplay {
 		this.isRevealed = false
 		this.maxDigitsToDisplay = 4
 		this.threshold = this.upgrade.cost * thresholdMulti
-
 	}
 
-	display() {
+	display(): void {
 		safeQueryHTMLElement(".cost-value", this.purchaseHtml).textContent = String(this.upgrade.cost)
 		safeQueryHTMLElement(".key-value", this.purchaseHtml).textContent = String(this.upgrade.key)
 		safeQueryHTMLElement(".chps-value", this.purchaseHtml).textContent = String(this.upgrade.value * this.upgrade.owned)
@@ -32,22 +34,18 @@ class UpgradeDisplay {
 		}
 	}
 
-	reveal() {
+	reveal(): void {
 		this.purchaseHtml.classList.remove("unavailable")
 	}
 
-	hide() {
+	hide(): void {
 		this.purchaseHtml.classList.add("unavailable")
 	}
 
-	/**
-	 *
-	 * @param {CharacterPool} characterPool
-	 */
-	displayAutoScore(characterPool) {
+	displayAutoScore(characterPool: CharacterPool): void {
 		let symbolsToAdd = this.upgrade.value * 4
 		const autoInput = this.autoTypeHtml
-		let spaceRemaining = this.maxDigitsToDisplay - autoInput.value.length
+		const spaceRemaining = this.maxDigitsToDisplay - autoInput.value.length
 		if (symbolsToAdd >= spaceRemaining) {
 			symbolsToAdd = (symbolsToAdd - spaceRemaining) % this.maxDigitsToDisplay
 			autoInput.value = ""
@@ -58,12 +56,11 @@ class UpgradeDisplay {
 		}
 	}
 
-	showInputSuccess() {
+	showInputSuccess(): void {
 		this.autoTypeHtml.classList.add('green-background')
 
 		setTimeout(() => {
 			this.autoTypeHtml.classList.remove('green-background')
 		}, 200)
 	}
-
 }
