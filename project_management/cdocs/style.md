@@ -49,4 +49,4 @@ Single-page, static HTML (`index.html`). No templating engine. Upgrade cards and
 
 ## Intervals & Timing
 
-The main game loop uses `setInterval` at 100ms for UI updates and upgrade reveal checks. Auto-scoring uses recursive `setTimeout` with dynamic delay (`1000 / upgrade.owned`) to vary tick frequency. No `requestAnimationFrame` or `performance.now` is used.
+The main game loop uses `requestAnimationFrame` with a manual 100ms gate (`delta >= 100`) for score accumulation and UI updates. Display animations (auto-input typing) use per-upgrade elapsed tracking inside the rAF loop — no `setInterval` or `setTimeout` for game loop work.

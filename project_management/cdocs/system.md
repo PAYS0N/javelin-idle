@@ -77,9 +77,9 @@ Arrow keys append their unicode symbol to the input value (they do not fire the 
 
 **attemptUpgradePurchase(upgrade)** — if `score >= upgrade.cost`, deducts cost, builds a `Set<string>` of all other upgrades' current keys, calls `upgrade.purchase(characterPool, existingKeys)`, clears input, flashes success. Otherwise puts the input into error state (red/`---`).
 
-**Game loop** — `runGameLogic()` sets a 100ms interval that calls `manageUpgrades()`, `display.revealUpgrades()`, `display.displayUpgrades()`, and `display.displayScore()`.
+**Game loop** — `runGameLogic()` starts a `requestAnimationFrame` loop. On each frame, if at least 100ms have elapsed since `lastTick`, it processes score accumulation and display updates, then calls `display.revealUpgrades()`, `display.displayUpgrades()`, and `display.displayScore()`.
 
-**Auto-scoring** — `manageUpgrades()` checks each upgrade; if `owned > 0` and `started === false`, it calls `runAutoScoring(upgrade)` and marks `started = true`. `runAutoScoring` adds `upgrade.value` to `game.score` and schedules itself again via `setTimeout(fn, 1000 / upgrade.owned)` — so each additional copy owned doubles the tick frequency (one copy = 1 tick/sec, two copies = 2 ticks/sec, etc.).
+**Auto-scoring** — Score accumulation runs every tick (≥100ms): `game.score += upgrade.value * upgrade.owned * (delta / 1000)`. Display animation (`displayAutoScore`) is decoupled: a `Map<string, number>` (`displayTicks`) tracks the last animation timestamp per upgrade name. `displayAutoScore` is called only when `timestamp - lastDisplay >= 1000 / upgrade.owned`, so the animation fires once per second at owned=1, twice per second at owned=2, etc. The interval updates automatically when `owned` increases.
 
 ---
 

@@ -18,6 +18,7 @@ export class GameController {
 
 	runGameLogic(): void {
 		let lastTick = 0
+		const displayTicks = new Map<string, number>()
 		const tick = (timestamp: number): void => {
 			const delta = timestamp - lastTick
 			if (delta >= 100) {
@@ -25,7 +26,12 @@ export class GameController {
 				for (const upgrade of this.game.upgrades) {
 					if (upgrade.owned > 0 && !(upgrade instanceof OneTimeUpgrade)) {
 						this.game.score += upgrade.value * upgrade.owned * (delta / 1000)
-						this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
+						const displayInterval = 1000 / upgrade.owned
+						const lastDisplay = displayTicks.get(upgrade.name) ?? 0
+						if (timestamp - lastDisplay >= displayInterval) {
+							displayTicks.set(upgrade.name, timestamp)
+							this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
+						}
 					}
 				}
 				this.display.revealUpgrades()
