@@ -23,7 +23,7 @@ export class GameController {
 			if (delta >= 100) {
 				lastTick = timestamp
 				for (const upgrade of this.game.upgrades) {
-					if (upgrade.owned > 0) {
+					if (upgrade.owned > 0 && !(upgrade instanceof OneTimeUpgrade)) {
 						this.game.score += upgrade.value * upgrade.owned * (delta / 1000)
 						this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
 					}
