@@ -11,12 +11,31 @@ body {
 }
 
 .header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+	align-items: center;
 	padding: 1.5rem;
 
 	text-align: center;
 	font-size: 4rem;
 
 	background-color: lightgrey;
+}
+
+#manage-game-save {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	align-items: center;
+	gap: .5rem;
+}
+
+#load-game {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: .5rem;
 }
 
 .center {
@@ -109,6 +128,10 @@ body {
 
 .green-background {
 	background-color: #b6fcb6;
+}
+
+.error-state {
+	background-color: #ffb6b6;
 }
 
 .goal-display {

@@ -5,18 +5,32 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="./css/style.css">
 	<script src="./js/javascript.js" defer></script>
+	<script src="./js/domUtils.js"></script>
 	<script src="./js/characterPool.js"></script>
 	<script src="./js/upgrade.js"></script>
 	<script src="./js/upgradeDisplay.js"></script>
 	<script src="./js/game.js"></script>
 	<script src="./js/gameDisplay.js"></script>
 	<script src="./js/gameController.js"></script>
+	<script src="./js/gameManager.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Javelin Idle</title>
 </head>
 
 <body>
-	<div class="header">Javelin Idle</div>
+	<div class="header">
+		<div id="header-title">Javelin Idle</div>
+		<div id="manage-game-save">
+			<div id="save-game">
+				<button id="save-game-button">Save game</button>
+				<button id="copy-game-save">Copy game save string</button>
+			</div>
+			<div id="load-game">
+				<input type="text" id="load-game-input" placeholder="Load game from string instead">
+				<button id="load-game-button">Load</button>
+			</div>
+		</div>
+	</div>
 	<div class="center">
 		<div class="stat-displays">
 			<div class="multi-display unavailable">

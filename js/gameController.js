@@ -42,7 +42,7 @@ class GameController {
 	 */
 	runAutoScoring(upgrade) {
 		this.game.score = this.game.score + upgrade.value
-		this.display.getDisplayByKey(upgrade.key).displayAutoScore(this.game.characterPool)
+		this.display.getDisplayByName(upgrade.name).displayAutoScore(this.game.characterPool)
 		setTimeout(() => this.runAutoScoring(upgrade), 1000 / upgrade.owned)
 	}
 
@@ -82,7 +82,7 @@ class GameController {
 				e.preventDefault()
 				this.attemptUpgradePurchase(upgrade)
 				if (upgrade instanceof OneTimeUpgrade) {
-					this.display.getDisplayByKey(input).hide()
+					this.display.getDisplayByName(upgrade.name).hide()
 				}
 				return
 			}

@@ -1,12 +1,12 @@
 // @ts-check
 
-class upgradeDisplay {
+class UpgradeDisplay {
 	/**
-	 * 
-	 * @param {Upgrade} upgrade 
-	 * @param {HTMLElement} displayHtml 
-	 * @param {HTMLInputElement} autoTypeHtml 
-	 * @param {number} thresholdMulti 
+	 *
+	 * @param {Upgrade} upgrade
+	 * @param {HTMLElement} displayHtml
+	 * @param {HTMLInputElement} autoTypeHtml
+	 * @param {number} thresholdMulti
 	 */
 	constructor(upgrade, displayHtml, autoTypeHtml, thresholdMulti) {
 		this.upgrade = upgrade
@@ -20,13 +20,13 @@ class upgradeDisplay {
 	}
 
 	display() {
-		this.safeQueryHTMLElement(this.purchaseHtml, ".cost-value").textContent = String(this.upgrade.cost)
-		this.safeQueryHTMLElement(this.purchaseHtml, ".key-value").textContent = String(this.upgrade.key)
-		this.safeQueryHTMLElement(this.purchaseHtml, ".chps-value").textContent = String(this.upgrade.value * this.upgrade.owned)
-		this.safeQueryHTMLElement(this.purchaseHtml, ".owned-value").textContent = String(this.upgrade.owned)
+		safeQueryHTMLElement(".cost-value", this.purchaseHtml).textContent = String(this.upgrade.cost)
+		safeQueryHTMLElement(".key-value", this.purchaseHtml).textContent = String(this.upgrade.key)
+		safeQueryHTMLElement(".chps-value", this.purchaseHtml).textContent = String(this.upgrade.value * this.upgrade.owned)
+		safeQueryHTMLElement(".owned-value", this.purchaseHtml).textContent = String(this.upgrade.owned)
 		if (this.upgrade.owned > 0 && !this.isRevealed) {
-			this.safeQueryHTMLElement(this.purchaseHtml, ".upgrade-owned").classList.remove("unavailable")
-			this.safeQueryHTMLElement(this.purchaseHtml, ".upgrade-chps").classList.remove("unavailable")
+			safeQueryHTMLElement(".upgrade-owned", this.purchaseHtml).classList.remove("unavailable")
+			safeQueryHTMLElement(".upgrade-chps", this.purchaseHtml).classList.remove("unavailable")
 			this.autoTypeHtml.classList.remove("unavailable")
 			this.isRevealed = true
 		}
@@ -41,24 +41,8 @@ class upgradeDisplay {
 	}
 
 	/**
- * 
- * @param {HTMLElement} base 
- * @param {string} identifier 
- * @returns {HTMLElement}
- */
-	safeQueryHTMLElement(base, identifier) {
-		const element = base.querySelector(identifier)
-		if (element instanceof HTMLElement) {
-			return element;
-		}
-		else {
-			throw new TypeError(`${identifier} not found, or not an HTMLElement.`)
-		}
-	}
-
-	/**
-	 * 
-	 * @param {CharacterPool} characterPool 
+	 *
+	 * @param {CharacterPool} characterPool
 	 */
 	displayAutoScore(characterPool) {
 		let symbolsToAdd = this.upgrade.value * 4
@@ -75,11 +59,11 @@ class upgradeDisplay {
 	}
 
 	showInputSuccess() {
-		this.autoTypeHtml.classList.add('green-background');
+		this.autoTypeHtml.classList.add('green-background')
 
 		setTimeout(() => {
-			this.autoTypeHtml.classList.remove('green-background');
-		}, 200);
+			this.autoTypeHtml.classList.remove('green-background')
+		}, 200)
 	}
 
 }

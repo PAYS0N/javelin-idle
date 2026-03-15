@@ -31,9 +31,18 @@ class Upgrade {
 	 * @param {CharacterPool} characterPool 
 	 */
 	purchase(characterPool) {
-		this.owned += 1;
+		this.owned += 1
 		this.cost += this.costIncrease
 		this.key = characterPool.generateKey(this.keyLength + (this.owned * this.keyIncrease))
+	}
+
+	toString() {
+		const upgradeObj = {}
+		upgradeObj.cost = this.cost
+		upgradeObj.owned = this.owned
+		upgradeObj.key = this.key
+		upgradeObj.started = this.started
+		return JSON.stringify(upgradeObj)
 	}
 }
 
@@ -52,6 +61,7 @@ class OneTimeUpgrade extends Upgrade {
 	}
 
 	purchase() {
+		this.owned = 1
 		this.onPurchase()
 	}
 }

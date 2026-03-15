@@ -86,4 +86,12 @@ class CharacterPool {
         }
         return aChars.join("")
     }
+
+    toString() {
+        const poolObj = {}
+        for (const key in this.pool) {
+            poolObj[key] = this.pool[key]
+        }
+        return JSON.stringify([this.purchaseChar, poolObj])
+    }
 }

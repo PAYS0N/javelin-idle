@@ -2,30 +2,30 @@
 
 class GameDisplay {
 	/**
-	 * 
-	 * @param {Game} game 
+	 *
+	 * @param {Game} game
 	 */
 	constructor(game) {
 		/** @type {Game} */
 		this.game = game
 		/** @type {HTMLElement} */
-		this.scoreDisplay = this.safeQueryHTMLElement(".score-value")
+		this.scoreDisplay = safeQueryHTMLElement(".score-value")
 		/** @type {HTMLInputElement} */
-		this.userInput = this.safeQueryHTMLElementInput(".typing-input")
+		this.userInput = safeQueryHTMLElementInput(".typing-input")
 		/** @type {HTMLElement} */
-		this.goalDisplay = this.safeQueryHTMLElement(".goal-value")
+		this.goalDisplay = safeQueryHTMLElement(".goal-value")
 		/** @type {HTMLElement} */
-		this.upgradesDisplay = this.safeQueryHTMLElement(".upgrades")
-		/** @type {upgradeDisplay[]} */
+		this.upgradesDisplay = safeQueryHTMLElement(".upgrades")
+		/** @type {UpgradeDisplay[]} */
 		this.upgradeDisplays = this.createDisplays(game.upgrades)
-		/** @type {upgradeDisplay[]} */
+		/** @type {UpgradeDisplay[]} */
 		this.lockedUpgradeDisplays = [...this.upgradeDisplays]
 	}
 
 	/**
-	 * 
-	 * @param {Upgrade[]} upgrades 
-	 * @returns {upgradeDisplay[]}
+	 *
+	 * @param {Upgrade[]} upgrades
+	 * @returns {UpgradeDisplay[]}
 	 */
 	createDisplays(upgrades) {
 		let displays = []
@@ -36,11 +36,25 @@ class GameDisplay {
 	}
 
 	/**
-	 * 
-	 * @param {Upgrade} upgrade 
+	 *
+	 * @param {Upgrade[]} upgrades
+	 */
+	migrateDisplays(upgrades) {
+		let i = 0
+		for (const display of this.upgradeDisplays) {
+			display.upgrade = upgrades[i]
+			display.isRevealed = false
+			display.threshold = display.upgrade.cost
+			i++
+		}
+	}
+
+	/**
+	 *
+	 * @param {Upgrade} upgrade
 	 */
 	createDisplayFromUpgrade(upgrade) {
-		const display = new upgradeDisplay(
+		const display = new UpgradeDisplay(
 			upgrade,
 			this.createUpdateHtml(upgrade.name),
 			this.createDisplayHTML(),
@@ -50,69 +64,38 @@ class GameDisplay {
 	}
 
 	/**
-	 * 
-	 * @param {string} input 
-	 * @returns {upgradeDisplay}
+	 *
+	 * @param {string} input
+	 * @returns {UpgradeDisplay}
 	 */
-	getDisplayByKey(input) {
+	getDisplayByName(input) {
 		for (const display of this.upgradeDisplays) {
-			if (input === display.upgrade.key) {
+			if (input === display.upgrade.name) {
 				return display
 			}
 		}
 		throw new Error(`No display found with upgrade with key ${input}`)
 	}
 
-
-	/**
-	 * 
-	 * @param {string} identifier 
-	 * @returns {HTMLElement}
-	 */
-	safeQueryHTMLElement(identifier) {
-		const element = document.querySelector(identifier)
-		if (element instanceof HTMLElement) {
-			return element;
-		}
-		else {
-			throw new TypeError(`${identifier} not found, or not an HTMLElement.`)
-		}
-	}
-
-	/**
-	 * 
-	 * @param {string} identifier 
-	 * @returns {HTMLInputElement}
-	 */
-	safeQueryHTMLElementInput(identifier) {
-		const element = document.querySelector(identifier)
-		if (element instanceof HTMLInputElement) {
-			return element;
-		}
-		else {
-			throw new TypeError(`${identifier} not found, or not of type HTMLInputElement.`)
-		}
-	}
-
 	displayScore() {
 		this.scoreDisplay.textContent = String(Math.floor(this.game.score))
 		if (this.game.scoreMulti > 1) {
-			this.safeQueryHTMLElement('.multi-display').classList.remove("unavailable")
-			this.safeQueryHTMLElement('.multi-value').textContent = String(this.game.scoreMulti)
+			safeQueryHTMLElement('.multi-display').classList.remove("unavailable")
+			safeQueryHTMLElement('.multi-value').textContent = String(this.game.scoreMulti)
 		}
 	}
 
 	showInputSuccess() {
-		this.userInput.classList.add('green-background');
+		this.userInput.classList.add('green-background')
 
 		setTimeout(() => {
-			this.userInput.classList.remove('green-background');
-		}, 200);
+			this.userInput.classList.remove('green-background')
+		}, 200)
 	}
 
 	/**
-	 * 
-	 * @param {string} symbol 
+	 *
+	 * @param {string} symbol
 	 */
 	displayGoal(symbol) {
 		this.goalDisplay.textContent = symbol
@@ -125,7 +108,7 @@ class GameDisplay {
 	}
 
 	/**
-	 * 
+	 *
 	 * @returns {string}
 	 */
 	getValue() {
@@ -133,8 +116,8 @@ class GameDisplay {
 	}
 
 	/**
-	 * 
-	 * @param {string} value 
+	 *
+	 * @param {string} value
 	 */
 	setValue(value) {
 		this.userInput.value = value
@@ -144,13 +127,13 @@ class GameDisplay {
 		for (const display of this.lockedUpgradeDisplays) {
 			if (this.game.score >= display.threshold) {
 				display.reveal()
-				this.lockedUpgradeDisplays.splice(this.lockedUpgradeDisplays.indexOf(display), 1);
+				this.lockedUpgradeDisplays.splice(this.lockedUpgradeDisplays.indexOf(display), 1)
 			}
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @returns {HTMLDivElement}
 	 * @param {string} name
 	 */
@@ -183,10 +166,10 @@ class GameDisplay {
 	}
 
 	/**
-	 * 
-	 * @param {string} phrase 
-	 * @param {string} text 
-	 * @returns 
+	 *
+	 * @param {string} phrase
+	 * @param {string} text
+	 * @returns
 	 */
 	createValueDisplayHtml(phrase, text) {
 		const upgradeCost = document.createElement('div')
@@ -204,7 +187,7 @@ class GameDisplay {
 	}
 
 	createDisplayHTML() {
-		const inputs = this.safeQueryHTMLElement(".auto-inputs")
+		const inputs = safeQueryHTMLElement(".auto-inputs")
 		const input = document.createElement("input")
 		input.classList.add("auto-input")
 		input.classList.add("unavailable")
