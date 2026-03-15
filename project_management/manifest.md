@@ -35,10 +35,10 @@
 
 | File | Description |
 |------|-------------|
-| [src/domUtils.ts](../src/domUtils.ts) | DOM utility functions: `safeQueryHTMLElement` and `safeQueryHTMLElementInput` with typed guards |
+| [src/domUtils.ts](../src/domUtils.ts) | DOM utilities: `safeQueryHTMLElement`, `safeQueryHTMLElementInput` (typed guards), `clearChildren`, `createCharToken`, `flashClass` (shared DOM helpers) |
 | [src/game.ts](../src/game.ts) | Core game state: score, score multiplier, goal, character pool, and upgrades; handles serialization, deserialization, and `regenerateAllKeys()` |
 | [src/gameManager.ts](../src/gameManager.ts) | Top-level orchestrator: creates Game/GameDisplay/GameController, wires save/load/copy buttons, hides purchased OneTimeUpgrade cards on load, and starts the game |
-| [src/gameController.ts](../src/gameController.ts) | Input handling and game loop: verifies typed input against goal, triggers scoring, manages upgrade auto-scoring intervals, handles upgrade purchases, regenerates all keys and goal after OneTimeUpgrade purchase, and calls `updateSettingsPanel` each tick |
+| [src/gameController.ts](../src/gameController.ts) | Input handling and game loop: verifies typed input against goal, triggers scoring, manages upgrade auto-scoring intervals, handles upgrade purchases, regenerates all keys and goal after OneTimeUpgrade purchase, handles char set toggle logic via `onSetToggled` callback, and calls `updateSettingsPanel` each tick |
 | [src/upgrade.ts](../src/upgrade.ts) | Upgrade and OneTimeUpgrade classes: cost, purchase key, owned count, auto-score value, and purchase logic; OneTimeUpgrade accepts optional `keyLength` for key regeneration |
 | [src/characterPool.ts](../src/characterPool.ts) | CharacterPool class and symbol/letter maps: tracks named char sets with per-set enabled/disabled state, derives active pool from enabled sets, generates random goals, and builds purchase key sequences |
 

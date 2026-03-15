@@ -13,7 +13,19 @@ export class GameController {
 
 	doGameSetup(): void {
 		this.display.userInput.addEventListener("keydown", (e) => { this.verifyInput(e) })
+		this.display.onSetToggled = (name, enabled) => this.handleSetToggle(name, enabled)
 		this.runGameLogic()
+	}
+
+	handleSetToggle(name: string, enabled: boolean): boolean {
+		const success = this.game.characterPool.toggleSet(name, enabled)
+		if (!success) {
+			return false
+		}
+		this.game.regenerateAllKeys()
+		const nextGoal = this.game.updateGoal()
+		this.display.displayGoal(nextGoal)
+		return true
 	}
 
 	runGameLogic(): void {
@@ -49,9 +61,8 @@ export class GameController {
 	}
 
 	verifyInput(e: KeyboardEvent): void {
-		if (this.display.userInput.classList.contains("error-state")) {
-			this.display.userInput.value = ""
-			this.display.userInput.classList.remove("error-state")
+		if (this.display.hasError()) {
+			this.display.clearError()
 		}
 		const input = this.getInput(e)
 		if (input === "ababvoidgloom*") {
@@ -64,7 +75,7 @@ export class GameController {
 			return this.inputCorrect()
 		}
 		else {
-			const upgrade = this.game.returnUpgradeByKey(input)
+			const upgrade = this.game.findUpgradeByKey(input)
 			if (upgrade) {
 				e.preventDefault()
 				this.attemptUpgradePurchase(upgrade)
@@ -79,7 +90,7 @@ export class GameController {
 		}
 		if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
 			e.preventDefault()
-			this.display.userInput.value += this.game.characterPool.getSymbolByKey(e.key)
+			this.display.appendToInput(this.game.characterPool.getSymbolByKey(e.key))
 		}
 	}
 
@@ -97,7 +108,7 @@ export class GameController {
 	}
 
 	doPageSetup(): void {
-		this.display.userInput.focus()
+		this.display.focusInput()
 		this.display.displayScore()
 		const nextGoal = this.game.updateGoal()
 		this.display.displayGoal(nextGoal)
@@ -113,8 +124,7 @@ export class GameController {
 			upgrade.purchase(this.game.characterPool, existingKeys)
 		}
 		else {
-			this.display.userInput.classList.add("error-state")
-			this.display.userInput.value = "---"
+			this.display.showError("---")
 		}
 	}
 }

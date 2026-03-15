@@ -125,15 +125,11 @@ export class CharacterPool {
 		return this.pool[keyCodes[nextIndex]]
 	}
 
-	includes(character: string): boolean {
-		return Object.keys(this.pool).includes(character)
-	}
-
-	generateKey(number: number, existingKeys: Set<string> = new Set()): string {
+	generateKey(length: number, existingKeys: Set<string> = new Set()): string {
 		let key: string
 		do {
 			const aChars = [this.purchaseChar]
-			for (let i = 0; i < number; i++) {
+			for (let i = 0; i < length; i++) {
 				aChars.push(this.getRandomChar())
 			}
 			key = aChars.join("")

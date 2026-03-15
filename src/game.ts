@@ -162,7 +162,7 @@ export class Game {
 		}
 	}
 
-	returnUpgradeByKey(input: string): Upgrade | undefined {
+	findUpgradeByKey(input: string): Upgrade | undefined {
 		for (const upgrade of this.upgrades) {
 			if (input === upgrade.key) {
 				return upgrade

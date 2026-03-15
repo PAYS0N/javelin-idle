@@ -10,7 +10,6 @@ export class Upgrade {
 	keyLength: number
 	keyIncrease: number
 	value: number
-	started: boolean
 
 	constructor(name: string, cost: number, costIncrease: number, multi: number, key: string, keyLength: number, keyIncrease: number, value: number) {
 		this.name = name
@@ -22,7 +21,6 @@ export class Upgrade {
 		this.keyLength = keyLength
 		this.keyIncrease = keyIncrease
 		this.value = value
-		this.started = false
 	}
 
 	purchase(characterPool: CharacterPool, existingKeys: Set<string> = new Set()): void {
@@ -36,7 +34,6 @@ export class Upgrade {
 		upgradeObj.cost = this.cost
 		upgradeObj.owned = this.owned
 		upgradeObj.key = this.key
-		upgradeObj.started = this.started
 		return JSON.stringify(upgradeObj)
 	}
 }

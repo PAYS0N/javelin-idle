@@ -13,3 +13,23 @@ export function safeQueryHTMLElementInput(identifier: string, base: Element | Do
 	}
 	throw new TypeError(`${identifier} not found, or not of type HTMLInputElement.`)
 }
+
+export function flashClass(element: HTMLElement, className: string, durationMs: number): void {
+	element.classList.add(className)
+	setTimeout(() => {
+		element.classList.remove(className)
+	}, durationMs)
+}
+
+export function clearChildren(element: HTMLElement): void {
+	while (element.firstChild) {
+		element.removeChild(element.firstChild)
+	}
+}
+
+export function createCharToken(text: string): HTMLDivElement {
+	const div = document.createElement("div")
+	div.classList.add("char-token")
+	div.textContent = text
+	return div
+}

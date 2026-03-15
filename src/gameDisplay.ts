@@ -1,4 +1,4 @@
-import { safeQueryHTMLElement } from "./domUtils.js"
+import { safeQueryHTMLElement, safeQueryHTMLElementInput, flashClass, clearChildren, createCharToken } from "./domUtils.js"
 import { Game } from "./game.js"
 import { Upgrade } from "./upgrade.js"
 import { UpgradeDisplay } from "./upgradeDisplay.js"
@@ -13,27 +13,27 @@ export class GameDisplay {
 	charSetToggles: HTMLElement
 	upgradeDisplays: UpgradeDisplay[]
 	lockedUpgradeDisplays: UpgradeDisplay[]
+	onSetToggled: ((name: string, enabled: boolean) => boolean) | null
+	private renderedSetCount: number
 
 	constructor(game: Game) {
 		this.game = game
 		this.scoreDisplay = safeQueryHTMLElement(".score-value")
-		this.userInput = document.querySelector(".typing-input") as HTMLInputElement
+		this.userInput = safeQueryHTMLElementInput(".typing-input")
 		this.goalDisplay = safeQueryHTMLElement(".goal-value")
 		this.upgradesDisplay = safeQueryHTMLElement(".upgrades")
 		this.settingsPanel = safeQueryHTMLElement(".game-settings")
 		this.charSetToggles = safeQueryHTMLElement(".char-set-toggles")
+		this.onSetToggled = null
+		this.renderedSetCount = 0
 		this.upgradeDisplays = this.createDisplays(game.upgrades)
 		this.lockedUpgradeDisplays = [...this.upgradeDisplays]
 	}
 
 	createDisplays(upgrades: Upgrade[]): UpgradeDisplay[] {
 		const autoInputs = safeQueryHTMLElement(".auto-inputs")
-		while (this.upgradesDisplay.firstChild) {
-			this.upgradesDisplay.removeChild(this.upgradesDisplay.firstChild)
-		}
-		while (autoInputs.firstChild) {
-			autoInputs.removeChild(autoInputs.firstChild)
-		}
+		clearChildren(this.upgradesDisplay)
+		clearChildren(autoInputs)
 		const displays: UpgradeDisplay[] = []
 		for (const upgrade of upgrades) {
 			displays.push(this.createDisplayFromUpgrade(upgrade))
@@ -41,20 +41,10 @@ export class GameDisplay {
 		return displays
 	}
 
-	migrateDisplays(upgrades: Upgrade[]): void {
-		let i = 0
-		for (const display of this.upgradeDisplays) {
-			display.upgrade = upgrades[i]
-			display.isRevealed = false
-			display.threshold = display.upgrade.cost
-			i++
-		}
-	}
-
 	createDisplayFromUpgrade(upgrade: Upgrade): UpgradeDisplay {
 		const display = new UpgradeDisplay(
 			upgrade,
-			this.createUpdateHtml(upgrade.name),
+			this.createUpgradeCardHtml(upgrade.name),
 			this.createDisplayHTML(),
 			upgrade.thresholdMulti
 		)
@@ -79,21 +69,12 @@ export class GameDisplay {
 	}
 
 	showInputSuccess(): void {
-		this.userInput.classList.add('green-background')
-
-		setTimeout(() => {
-			this.userInput.classList.remove('green-background')
-		}, 200)
+		flashClass(this.userInput, "green-background", 200)
 	}
 
 	displayGoal(symbol: string): void {
-		while (this.goalDisplay.firstChild) {
-			this.goalDisplay.removeChild(this.goalDisplay.firstChild)
-		}
-		const div = document.createElement("div")
-		div.classList.add("char-token")
-		div.textContent = symbol
-		this.goalDisplay.appendChild(div)
+		clearChildren(this.goalDisplay)
+		this.goalDisplay.appendChild(createCharToken(symbol))
 	}
 
 	displayUpgrades(): void {
@@ -108,6 +89,28 @@ export class GameDisplay {
 
 	setValue(value: string): void {
 		this.userInput.value = value
+	}
+
+	appendToInput(text: string): void {
+		this.userInput.value += text
+	}
+
+	focusInput(): void {
+		this.userInput.focus()
+	}
+
+	clearError(): void {
+		this.userInput.value = ""
+		this.userInput.classList.remove("error-state")
+	}
+
+	hasError(): boolean {
+		return this.userInput.classList.contains("error-state")
+	}
+
+	showError(text: string): void {
+		this.userInput.classList.add("error-state")
+		this.userInput.value = text
 	}
 
 	revealUpgrades(): void {
@@ -125,6 +128,10 @@ export class GameDisplay {
 			this.settingsPanel.classList.add("unavailable")
 			return
 		}
+		if (setNames.length === this.renderedSetCount) {
+			return
+		}
+		this.renderedSetCount = setNames.length
 		this.settingsPanel.classList.remove("unavailable")
 		for (const name of setNames) {
 			const existing = this.charSetToggles.querySelector(`[data-set-name="${name}"]`)
@@ -137,30 +144,25 @@ export class GameDisplay {
 				checkbox.dataset.setName = name
 				checkbox.checked = this.game.characterPool.isSetEnabled(name)
 				checkbox.addEventListener("change", () => {
-					const success = this.game.characterPool.toggleSet(name, checkbox.checked)
-					if (!success) {
-						checkbox.checked = true
-						return
+					if (this.onSetToggled) {
+						const success = this.onSetToggled(name, checkbox.checked)
+						if (!success) {
+							checkbox.checked = true
+						}
 					}
-					this.game.regenerateAllKeys()
-					const nextGoal = this.game.updateGoal()
-					this.displayGoal(nextGoal)
 				})
 
-				const labelText = document.createElement("span")
+				const labelText = document.createElement("div")
 				labelText.textContent = name.charAt(0).toUpperCase() + name.slice(1)
 
 				label.appendChild(checkbox)
 				label.appendChild(labelText)
 				this.charSetToggles.appendChild(label)
-			} else {
-				const checkbox = existing as HTMLInputElement
-				checkbox.checked = this.game.characterPool.isSetEnabled(name)
 			}
 		}
 	}
 
-	createUpdateHtml(name: string): HTMLDivElement {
+	createUpgradeCardHtml(name: string): HTMLDivElement {
 		const upgrade = document.createElement('div')
 		upgrade.classList.add("upgrade")
 		upgrade.classList.add("unavailable")

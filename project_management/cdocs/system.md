@@ -26,7 +26,7 @@ The starting set is `"symbols"`: programming punctuation (`{}()`, `*+-=,.[]`, `:
 
 `isSetEnabled(name)` and `getSetNames()` expose per-set state for the settings panel.
 
-`generateKey(n, existingKeys?)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning.
+`generateKey(length, existingKeys?)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning.
 
 `getRandomChar()` picks a random value from the pool to serve as the next typing goal.
 
@@ -63,7 +63,7 @@ The starting set is `"symbols"`: programming punctuation (`{}()`, `*+-=,.[]`, `:
 
 ## Upgrades
 
-`Upgrade` (upgrade.ts) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti`, `owned`, `key`, `keyLength`, `keyIncrease`, `value`, `started`.
+`Upgrade` (upgrade.ts) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti`, `owned`, `key`, `keyLength`, `keyIncrease`, `value`.
 
 `purchase(characterPool, existingKeys?)` increments `owned`, adds `costIncrease` to `cost`, and regenerates `key` with length `keyLength + (owned × keyIncrease)`.
 
@@ -99,9 +99,11 @@ Arrow keys append their unicode symbol to the input value.
 
 `displayGoal(symbol)` clears `.goal-value` and appends a `<div class="char-token">` containing the symbol — using DOM construction, not `textContent`, to apply the char-token visual treatment.
 
-`updateSettingsPanel()` is called every tick. If fewer than 2 char sets are registered, the panel stays hidden. Once 2+ sets exist, the panel is revealed and a labeled checkbox is created per set (identified by `data-set-name` on the `<input>`). Each checkbox's `change` handler calls `characterPool.toggleSet(name, checked)`. On a successful toggle (`true` return), it also calls `game.regenerateAllKeys()`, `game.updateGoal()`, and updates the goal display. On a blocked toggle (last enabled set), the checkbox is snapped back to `checked = true`.
+`updateSettingsPanel()` is called every tick but short-circuits when the set count hasn't changed (tracked via `renderedSetCount`). If fewer than 2 char sets are registered, the panel stays hidden. Once 2+ sets exist, the panel is revealed and a labeled checkbox is created per set (identified by `data-set-name` on the `<input>`). Each checkbox's `change` handler delegates to `onSetToggled`, a callback set by `GameController`. On a blocked toggle (last enabled set), the checkbox is snapped back to `checked = true`.
 
-`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()`, it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual `<div class="char-token">` elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates `char-token` children in `displayAutoScore()` rather than using an `<input>` `.value`.
+`GameDisplay` exposes input abstraction methods (`getValue`, `setValue`, `appendToInput`, `focusInput`, `hasError`, `clearError`, `showError`) so the controller never accesses `userInput` directly for state management.
+
+`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()` (tracked by `ownedStatsShown`), it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual char-token elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates char-token children in `displayAutoScore()` rather than using an `<input>` `.value`.
 
 ---
 

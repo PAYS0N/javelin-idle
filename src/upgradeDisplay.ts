@@ -1,4 +1,4 @@
-import { safeQueryHTMLElement } from "./domUtils.js"
+import { safeQueryHTMLElement, flashClass, clearChildren, createCharToken } from "./domUtils.js"
 import { CharacterPool } from "./characterPool.js"
 import { Upgrade } from "./upgrade.js"
 
@@ -6,8 +6,7 @@ export class UpgradeDisplay {
 	upgrade: Upgrade
 	purchaseHtml: HTMLElement
 	autoTypeHtml: HTMLElement
-	firstPurchase: boolean
-	isRevealed: boolean
+	ownedStatsShown: boolean
 	maxDigitsToDisplay: number
 	threshold: number
 	pendingScore: number
@@ -16,8 +15,7 @@ export class UpgradeDisplay {
 		this.upgrade = upgrade
 		this.purchaseHtml = displayHtml
 		this.autoTypeHtml = autoTypeHtml
-		this.firstPurchase = true
-		this.isRevealed = false
+		this.ownedStatsShown = false
 		this.maxDigitsToDisplay = 4
 		this.threshold = this.upgrade.cost * thresholdMulti
 		this.pendingScore = 0
@@ -28,13 +26,13 @@ export class UpgradeDisplay {
 		this.renderKey(safeQueryHTMLElement(".key-value", this.purchaseHtml), this.upgrade.key)
 		safeQueryHTMLElement(".chps-value", this.purchaseHtml).textContent = String(this.upgrade.value * this.upgrade.owned)
 		safeQueryHTMLElement(".owned-value", this.purchaseHtml).textContent = String(this.upgrade.owned)
-		if (this.upgrade.owned > 0 && !this.isRevealed) {
+		if (this.upgrade.owned > 0 && !this.ownedStatsShown) {
 			safeQueryHTMLElement(".upgrade-owned", this.purchaseHtml).classList.remove("unavailable")
 			safeQueryHTMLElement(".upgrade-chps", this.purchaseHtml).classList.remove("unavailable")
 			if (this.upgrade.value > 0) {
 				this.autoTypeHtml.classList.remove("unavailable")
 			}
-			this.isRevealed = true
+			this.ownedStatsShown = true
 		}
 	}
 
@@ -54,39 +52,25 @@ export class UpgradeDisplay {
 		let scoreGain = 0
 		if (symbolsToAdd >= spaceRemaining) {
 			symbolsToAdd = (symbolsToAdd - spaceRemaining) % this.maxDigitsToDisplay
-			while (autoInput.firstChild) {
-				autoInput.removeChild(autoInput.firstChild)
-			}
+			clearChildren(autoInput)
 			scoreGain = this.pendingScore
 			this.pendingScore = 0
 			this.showInputSuccess()
 		}
 		for (let i = 0; i < symbolsToAdd; i++) {
-			const div = document.createElement("div")
-			div.classList.add("char-token")
-			div.textContent = characterPool.getRandomChar()
-			autoInput.appendChild(div)
+			autoInput.appendChild(createCharToken(characterPool.getRandomChar()))
 		}
 		return scoreGain
 	}
 
 	private renderKey(el: HTMLElement, key: string): void {
-		while (el.firstChild) {
-			el.removeChild(el.firstChild)
-		}
+		clearChildren(el)
 		for (const char of key) {
-			const div = document.createElement("div")
-			div.classList.add("char-token")
-			div.textContent = char
-			el.appendChild(div)
+			el.appendChild(createCharToken(char))
 		}
 	}
 
 	showInputSuccess(): void {
-		this.autoTypeHtml.classList.add('green-background')
-
-		setTimeout(() => {
-			this.autoTypeHtml.classList.remove('green-background')
-		}, 200)
+		flashClass(this.autoTypeHtml, "green-background", 200)
 	}
 }
