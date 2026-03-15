@@ -21,6 +21,7 @@ Native TypeScript types are used throughout. Class properties are declared with 
 ## DOM Access
 
 All DOM queries go through two utility functions in `domUtils.ts`: `safeQueryHTMLElement(identifier, base = document)` and `safeQueryHTMLElementInput(identifier, base = document)`. Both throw a `TypeError` with a descriptive message if the element is missing or the wrong type. Passing a base element as the second argument scopes the query to that subtree.
+Never use innerHTML.
 
 ## Formatting
 

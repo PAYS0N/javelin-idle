@@ -14,7 +14,6 @@
 
 | Description | Severity | Difficulty |
 |---|---|---|
-| fix DOM duplication on game reload (upgrade cards and auto-inputs appended without clearing old ones) | high | low |
 | make it possible for user to choose whether to enable a char set | high | low |
 | implement auto-save to localStorage | high | low |
 | fix bug when 'typer 1 -> typer 3 -> letters' shows the typer 2 box | high | low |

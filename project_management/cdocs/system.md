@@ -85,7 +85,7 @@ Arrow keys append their unicode symbol to the input value (they do not fire the 
 
 ## Display
 
-`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. On construction it queries `.score-value`, `.typing-input`, `.goal-value`, `.upgrades`, and `.auto-inputs`. It creates one `UpgradeDisplay` per upgrade via `createDisplayFromUpgrade`, which also appends the upgrade card HTML and an auto-input element to the DOM.
+`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. On construction it queries `.score-value`, `.typing-input`, `.goal-value`, `.upgrades`, and `.auto-inputs`. It creates one `UpgradeDisplay` per upgrade via `createDisplayFromUpgrade`, which also appends the upgrade card HTML and an auto-input element to the DOM. `createDisplays()` clears the `.upgrades` and `.auto-inputs` containers before appending new elements, so it is safe to call on reload without creating duplicates.
 
 `revealUpgrades()` iterates `lockedUpgradeDisplays` and calls `display.reveal()` (removes `unavailable` class) for any whose `threshold ≤ game.score`. Revealed displays are spliced from the locked list.
 
@@ -103,7 +103,7 @@ Arrow keys append their unicode symbol to the input value (they do not fire the 
 - **Copy game save string** — calls `game.toString()` and writes to clipboard via `navigator.clipboard.writeText`.
 - **Load** — if the load input is empty, reads `localStorage["gameSave"]`; otherwise parses the input text. In both cases calls `createGameFromObj(gameObj)`.
 
-`GameManager.createGameFromObj(gameObj)` replaces `this.game` with a new `Game(gameObj)`, updates `gameDisplay.game` and `gameController.game` references, recreates upgrade display instances via `gameDisplay.createDisplays`, and calls `doPageSetup()` to re-initialize the UI.
+`GameManager.createGameFromObj(gameObj)` replaces `this.game` with a new `Game(gameObj)`, updates `gameDisplay.game` and `gameController.game` references, recreates upgrade display instances via `gameDisplay.createDisplays` (which clears old DOM nodes), resets `gameDisplay.lockedUpgradeDisplays` to the new display list, and calls `doPageSetup()` to re-initialize the UI.
 
 When loading a saved game, `Game.createGameFromObj` restores score, scoreMulti, goal, characterPool, and upgrades. For each upgrade, cost/owned/key are overwritten from the save. If a `OneTimeUpgrade` has `owned > 0`, its `onPurchase` callback fires immediately to re-apply its side effects (e.g. re-adding letters to the pool).
 
