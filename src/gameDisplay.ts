@@ -87,7 +87,13 @@ export class GameDisplay {
 	}
 
 	displayGoal(symbol: string): void {
-		this.goalDisplay.textContent = symbol
+		while (this.goalDisplay.firstChild) {
+			this.goalDisplay.removeChild(this.goalDisplay.firstChild)
+		}
+		const div = document.createElement("div")
+		div.classList.add("char-token")
+		div.textContent = symbol
+		this.goalDisplay.appendChild(div)
 	}
 
 	displayUpgrades(): void {
@@ -197,9 +203,9 @@ export class GameDisplay {
 		return upgradeCost
 	}
 
-	createDisplayHTML(): HTMLInputElement {
+	createDisplayHTML(): HTMLDivElement {
 		const inputs = safeQueryHTMLElement(".auto-inputs")
-		const input = document.createElement("input")
+		const input = document.createElement("div")
 		input.classList.add("auto-input")
 		input.classList.add("unavailable")
 		inputs.appendChild(input)

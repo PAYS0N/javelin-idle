@@ -129,15 +129,24 @@ body {
 	flex-direction: column;
 	align-items: center;
 
+	width: 60%;
+
 	gap: 1rem;
 }
 
 .auto-input {
-	width: 40%;
+	width: 100%;
+	min-height: calc(2.4rem + 4px);
 
-	text-align: center;
-	font-size: 3rem;
-	letter-spacing: 2px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+
+	border: 2px solid black;
+	line-height: 1.2;
+
+	font-size: 2rem;
 
 	transition: background-color 0.2s ease;
 }
@@ -162,9 +171,16 @@ body {
 .goal-value {
 	width: 3rem;
 
-	border: 2px solid black;
-
 	text-align: center;
+	font-family: monospace;
+}
+
+.char-token {
+	font-family: monospace;
+	background-color: #e8e8e8;
+	border-radius: 3px;
+	padding: 0 .2rem;
+	margin: 0 .1rem;
 }
 
 .game-settings {
@@ -228,6 +244,12 @@ body {
 	justify-content: space-around;
 
 	gap: .7rem;
+}
+
+.key-value {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
 }
 
 .unavailable {

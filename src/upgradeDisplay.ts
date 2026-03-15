@@ -5,14 +5,14 @@ import { Upgrade } from "./upgrade.js"
 export class UpgradeDisplay {
 	upgrade: Upgrade
 	purchaseHtml: HTMLElement
-	autoTypeHtml: HTMLInputElement
+	autoTypeHtml: HTMLElement
 	firstPurchase: boolean
 	isRevealed: boolean
 	maxDigitsToDisplay: number
 	threshold: number
 	pendingScore: number
 
-	constructor(upgrade: Upgrade, displayHtml: HTMLElement, autoTypeHtml: HTMLInputElement, thresholdMulti: number) {
+	constructor(upgrade: Upgrade, displayHtml: HTMLElement, autoTypeHtml: HTMLElement, thresholdMulti: number) {
 		this.upgrade = upgrade
 		this.purchaseHtml = displayHtml
 		this.autoTypeHtml = autoTypeHtml
@@ -25,7 +25,7 @@ export class UpgradeDisplay {
 
 	display(): void {
 		safeQueryHTMLElement(".cost-value", this.purchaseHtml).textContent = String(this.upgrade.cost)
-		safeQueryHTMLElement(".key-value", this.purchaseHtml).textContent = String(this.upgrade.key)
+		this.renderKey(safeQueryHTMLElement(".key-value", this.purchaseHtml), this.upgrade.key)
 		safeQueryHTMLElement(".chps-value", this.purchaseHtml).textContent = String(this.upgrade.value * this.upgrade.owned)
 		safeQueryHTMLElement(".owned-value", this.purchaseHtml).textContent = String(this.upgrade.owned)
 		if (this.upgrade.owned > 0 && !this.isRevealed) {
@@ -50,19 +50,36 @@ export class UpgradeDisplay {
 		this.pendingScore += this.upgrade.value
 		let symbolsToAdd = this.upgrade.value * 4
 		const autoInput = this.autoTypeHtml
-		const spaceRemaining = this.maxDigitsToDisplay - autoInput.value.length
+		const spaceRemaining = this.maxDigitsToDisplay - autoInput.childElementCount
 		let scoreGain = 0
 		if (symbolsToAdd >= spaceRemaining) {
 			symbolsToAdd = (symbolsToAdd - spaceRemaining) % this.maxDigitsToDisplay
-			autoInput.value = ""
+			while (autoInput.firstChild) {
+				autoInput.removeChild(autoInput.firstChild)
+			}
 			scoreGain = this.pendingScore
 			this.pendingScore = 0
 			this.showInputSuccess()
 		}
 		for (let i = 0; i < symbolsToAdd; i++) {
-			autoInput.value += characterPool.getRandomChar()
+			const div = document.createElement("div")
+			div.classList.add("char-token")
+			div.textContent = characterPool.getRandomChar()
+			autoInput.appendChild(div)
 		}
 		return scoreGain
+	}
+
+	private renderKey(el: HTMLElement, key: string): void {
+		while (el.firstChild) {
+			el.removeChild(el.firstChild)
+		}
+		for (const char of key) {
+			const div = document.createElement("div")
+			div.classList.add("char-token")
+			div.textContent = char
+			el.appendChild(div)
+		}
 	}
 
 	showInputSuccess(): void {

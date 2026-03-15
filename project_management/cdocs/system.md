@@ -95,11 +95,13 @@ Arrow keys append their unicode symbol to the input value.
 
 ## Display
 
-`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. Fields include `settingsPanel` (`.game-settings`) and `charSetToggles` (`.char-set-toggles`) for the Game Settings panel.
+`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. Fields include `settingsPanel` (`.game-settings`) and `charSetToggles` (`.char-set-toggles`) for the Game Settings panel. `createDisplayHTML()` creates a `<div class="auto-input">` (not an `<input>`) for each upgrade's auto-typer display.
+
+`displayGoal(symbol)` clears `.goal-value` and appends a `<div class="char-token">` containing the symbol — using DOM construction, not `textContent`, to apply the char-token visual treatment.
 
 `updateSettingsPanel()` is called every tick. If fewer than 2 char sets are registered, the panel stays hidden. Once 2+ sets exist, the panel is revealed and a labeled checkbox is created per set (identified by `data-set-name` on the `<input>`). Each checkbox's `change` handler calls `characterPool.toggleSet(name, checked)`. On a successful toggle (`true` return), it also calls `game.regenerateAllKeys()`, `game.updateGoal()`, and updates the goal display. On a blocked toggle (last enabled set), the checkbox is snapped back to `checked = true`.
 
-`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element. When `owned > 0` is first detected in `display()`, it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`).
+`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()`, it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual `<div class="char-token">` elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates `char-token` children in `displayAutoScore()` rather than using an `<input>` `.value`.
 
 ---
 

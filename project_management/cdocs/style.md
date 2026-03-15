@@ -43,6 +43,8 @@ Missing DOM elements throw `TypeError` via the `safeQuery*` wrappers. Invalid sa
 
 One stylesheet (`css/style.css`). No preprocessor, no CSS variables, no utility framework. Rules are ordered structurally: reset → layout regions (header, center, footer) → individual components. Selectors use classes for reusable components and IDs for unique page elements (save/load buttons, header title). No nesting; each rule block is a flat selector. Units: `rem` for spacing and font sizes, `dvh` for full-viewport height, `%` for element-relative widths. State classes (`.unavailable`, `.green-background`, `.error-state`) are toggled by JS via `classList`. `.unavailable` is `display: none`. `.green-background` and `.error-state` are transitioned via `transition: background-color 0.2s ease` on the input elements they apply to.
 
+Prefer divs over spans.
+
 ## HTML
 
 Single-page, static HTML (`index.html`). No templating engine. Upgrade cards and auto-input elements are created entirely in TypeScript and appended to `.upgrades` and `.auto-inputs` at runtime — the HTML contains only the empty container divs. A single `<script type="module" src="./dist/main.js">` tag loads the compiled entry point. Attributes use double quotes. Indentation is tabs.
