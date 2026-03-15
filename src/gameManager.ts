@@ -1,5 +1,6 @@
 import { safeQueryHTMLElement, safeQueryHTMLElementInput } from "./domUtils.js"
 import { Game } from "./game.js"
+import { OneTimeUpgrade } from "./upgrade.js"
 import { GameDisplay } from "./gameDisplay.js"
 import { GameController } from "./gameController.js"
 
@@ -71,7 +72,14 @@ export class GameManager {
 		this.game = new Game(gameObj)
 		this.gameDisplay.game = this.game
 		this.gameDisplay.upgradeDisplays = this.gameDisplay.createDisplays(this.game.upgrades)
-		this.gameDisplay.lockedUpgradeDisplays = [...this.gameDisplay.upgradeDisplays]
+		const lockedDisplays = this.gameDisplay.upgradeDisplays.filter(d => {
+			if (d.upgrade instanceof OneTimeUpgrade && d.upgrade.owned > 0) {
+				d.hide()
+				return false
+			}
+			return true
+		})
+		this.gameDisplay.lockedUpgradeDisplays = lockedDisplays
 		this.gameController.game = this.game
 		this.gameController.doPageSetup()
 	}

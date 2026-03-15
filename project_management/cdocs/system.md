@@ -14,15 +14,23 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 ## Character Pool
 
-`CharacterPool` (characterPool.ts) holds the set of typeable characters as a `pool` object (`Record<string, string>`) mapping keyboard key strings to display symbols. The starting pool is `getSymbols()`: programming punctuation (`{}()`, `*+-=,.[]`, `:;'"`) plus four arrow keys mapped to unicode arrows (`↑↓←→`). The purchase character `$` is reserved and excluded from the pool.
+`CharacterPool` (characterPool.ts) holds typeable characters as named sets. Each set is a `CharSet`: `{ chars: Record<string, string>, enabled: boolean }`, stored in `sets: Record<string, CharSet>`. The active `pool: Record<string, string>` is derived from all enabled sets and rebuilt on any change.
 
-`addLetters()` merges `getLetters()` (a-z) into the pool, expanding what goals can be generated.
+The starting set is `"symbols"`: programming punctuation (`{}()`, `*+-=,.[]`, `:;'"`) plus four arrow keys mapped to unicode arrows (`↑↓←→`). The purchase character `$` is reserved and excluded from the pool.
 
-`generateKey(n, existingKeys?)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning. This guarantees uniqueness among all currently held keys at generation time.
+`addSet(name, chars)` registers a new set (enabled by default) and rebuilds the pool. If the set already exists, only `chars` is updated and the existing `enabled` state is preserved.
+
+`addLetters()` calls `addSet("letters", getLetters())` to merge a–z into the pool.
+
+`toggleSet(name, enabled)` enables or disables a named set. If disabling the set would leave zero enabled sets, the call is a no-op and returns `false`; otherwise it updates the state, rebuilds the pool, and returns `true`.
+
+`isSetEnabled(name)` and `getSetNames()` expose per-set state for the settings panel.
+
+`generateKey(n, existingKeys?)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning.
 
 `getRandomChar()` picks a random value from the pool to serve as the next typing goal.
 
-`toString()` serializes as `JSON.stringify([purchaseChar, poolObj])` for save/load.
+`toString()` serializes as `JSON.stringify([purchaseChar, setsConfig])` where `setsConfig` is `Record<string, { chars, enabled }>`. Static methods `fromSave(purchaseChar, setsConfig)` and `fromOldSave(purchaseChar, poolObj)` handle new and legacy save formats respectively.
 
 ---
 
@@ -47,17 +55,19 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 `scoreSuccess()` adds `scoreMulti` to `score`. `updateGoal()` calls `characterPool.getRandomChar()` and stores the result as `goal`.
 
-`toString()` / `createGameFromObj()` handle full serialization: score, scoreMulti, goal, characterPool (as JSON string), and upgrades (each as a JSON string within the array).
+`regenerateAllKeys()` regenerates `key` for every upgrade using `keyLength + owned × keyIncrease`, collecting all keys into a shared `Set<string>` to prevent collisions. Called when the active char set changes — either from toggling a set off/on, or after a `OneTimeUpgrade` purchase that adds a new set.
+
+`toString()` / `createGameFromObj()` handle full serialization: score, scoreMulti, goal, characterPool (as JSON string), and upgrades (each as a JSON string within the array). `createGameFromObj` detects old vs new CharacterPool save formats by inspecting the type of values in the second array element. `scoreMulti` is saved before `onPurchase` callbacks fire and restored afterward, preventing the multiplier from being applied twice on load.
 
 ---
 
 ## Upgrades
 
-`Upgrade` (upgrade.ts) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti` (fraction of cost at which the card is revealed to the player), `owned`, `key` (current purchase sequence), `keyLength`, `keyIncrease`, `value` (score added per auto-score tick), `started` (whether the auto-scoring interval is running).
+`Upgrade` (upgrade.ts) is the repeatable upgrade type. Fields: `name`, `cost`, `costIncrease`, `thresholdMulti`, `owned`, `key`, `keyLength`, `keyIncrease`, `value`, `started`.
 
-`purchase(characterPool, existingKeys?)` increments `owned`, adds `costIncrease` to `cost`, and regenerates `key` with length `keyLength + (owned × keyIncrease)` — so purchase keys grow longer with each copy owned. `existingKeys` is forwarded to `generateKey` to prevent the new key from colliding with any currently held key.
+`purchase(characterPool, existingKeys?)` increments `owned`, adds `costIncrease` to `cost`, and regenerates `key` with length `keyLength + (owned × keyIncrease)`.
 
-`OneTimeUpgrade extends Upgrade` with `owned` capped at 1 and an `onPurchase` callback that fires on purchase. Cost/key/value deltas are all 0. "Unlock Letters" passes `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×1.5 and calls `characterPool.addLetters()`.
+`OneTimeUpgrade extends Upgrade` with `owned` capped at 1 and an `onPurchase` callback that fires on purchase. Cost/key delta/value are all 0. Accepts an optional `keyLength` parameter (passed to `super`) so `regenerateAllKeys()` can correctly compute its key length. "Unlock Letters" passes `keyLength = 10` and `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×1.5 and calls `characterPool.addLetters()`.
 
 ---
 
@@ -69,52 +79,56 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 1. Cheat code: if candidate equals `"ababvoidgloom*"`, add 1000 to score and call `inputCorrect()`.
 2. Scorable: if candidate equals `game.goal`, call `inputCorrect()`.
-3. Upgrade key: if candidate matches any `upgrade.key`, call `attemptUpgradePurchase(upgrade)`. For `OneTimeUpgrade`, also hide its display card.
+3. Upgrade key: if candidate matches any `upgrade.key`, call `attemptUpgradePurchase(upgrade)`. For `OneTimeUpgrade`, also hide its display card, call `game.regenerateAllKeys()`, and update the goal display.
 
-Arrow keys append their unicode symbol to the input value (they do not fire the normal input event path cleanly).
+Arrow keys append their unicode symbol to the input value.
 
 **inputCorrect()** — flashes the input green, calls `game.scoreSuccess()`, clears the input, updates the score display, calls `game.updateGoal()`, and updates the goal display.
 
-**attemptUpgradePurchase(upgrade)** — if `score >= upgrade.cost`, deducts cost, builds a `Set<string>` of all other upgrades' current keys, calls `upgrade.purchase(characterPool, existingKeys)`, clears input, flashes success. Otherwise puts the input into error state (red/`---`).
+**attemptUpgradePurchase(upgrade)** — if `score >= upgrade.cost`, deducts cost, calls `upgrade.purchase(characterPool, existingKeys)`. Otherwise puts the input into error state.
 
-**Game loop** — `runGameLogic()` starts a `requestAnimationFrame` loop. On each frame, if at least 100ms have elapsed since `lastTick`, it processes score accumulation and display updates, then calls `display.revealUpgrades()`, `display.displayUpgrades()`, and `display.displayScore()`.
+**Game loop** — `runGameLogic()` starts a `requestAnimationFrame` loop. On each frame, if at least 100ms have elapsed since `lastTick`, it drives auto-score display/accumulation, calls `display.revealUpgrades()`, `display.displayUpgrades()`, `display.displayScore()`, and `display.updateSettingsPanel()`.
 
-**Auto-scoring** — Score accumulation runs every tick (≥100ms): `game.score += upgrade.value * upgrade.owned * (delta / 1000)`. Display animation (`displayAutoScore`) is decoupled: a `Map<string, number>` (`displayTicks`) tracks the last animation timestamp per upgrade name. `displayAutoScore` is called only when `timestamp - lastDisplay >= 1000 / upgrade.owned`, so the animation fires once per second at owned=1, twice per second at owned=2, etc. The interval updates automatically when `owned` increases.
+**Auto-scoring** — A `Map<string, number>` (`displayTicks`) tracks the last animation timestamp per upgrade name. `displayAutoScore` fires once per second at owned=1, twice per second at owned=2, etc. Each call, `UpgradeDisplay` accumulates `upgrade.value` into `pendingScore`. When the display bar overflows, `pendingScore` is committed to `game.score`.
 
 ---
 
 ## Display
 
-`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. On construction it queries `.score-value`, `.typing-input`, `.goal-value`, `.upgrades`, and `.auto-inputs`. It creates one `UpgradeDisplay` per upgrade via `createDisplayFromUpgrade`, which also appends the upgrade card HTML and an auto-input element to the DOM. `createDisplays()` clears the `.upgrades` and `.auto-inputs` containers before appending new elements, so it is safe to call on reload without creating duplicates.
+`GameDisplay` (gameDisplay.ts) owns all DOM references and `UpgradeDisplay` instances. Fields include `settingsPanel` (`.game-settings`) and `charSetToggles` (`.char-set-toggles`) for the Game Settings panel.
 
-`revealUpgrades()` iterates `lockedUpgradeDisplays` and calls `display.reveal()` (removes `unavailable` class) for any whose `threshold ≤ game.score`. Revealed displays are spliced from the locked list.
+`updateSettingsPanel()` is called every tick. If fewer than 2 char sets are registered, the panel stays hidden. Once 2+ sets exist, the panel is revealed and a labeled checkbox is created per set (identified by `data-set-name` on the `<input>`). Each checkbox's `change` handler calls `characterPool.toggleSet(name, checked)`. On a successful toggle (`true` return), it also calls `game.regenerateAllKeys()`, `game.updateGoal()`, and updates the goal display. On a blocked toggle (last enabled set), the checkbox is snapped back to `checked = true`.
 
-`displayUpgrades()` calls `display.display()` on every upgrade display, updating cost, key, owned count, and ch/s values. If `owned > 0` and not yet revealed at the display level, it un-hides the owned/chps rows and the auto-input field.
-
-`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its associated auto-input element. `displayAutoScore(characterPool)` is called by `runAutoScoring` to animate the auto-input: it appends `upgrade.value × 4` random symbols, wrapping and flashing green when the 4-character display limit is reached.
+`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element. When `owned > 0` is first detected in `display()`, it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`).
 
 ---
 
 ## Save / Load
 
-`GameManager` (gameManager.ts) wires three buttons:
+`GameManager` (gameManager.ts) wires three buttons: Save, Copy, and Load.
 
-- **Save game** — calls `game.toString()` and writes to `localStorage["gameSave"]`.
-- **Copy game save string** — calls `game.toString()` and writes to clipboard via `navigator.clipboard.writeText`.
-- **Load** — if the load input is empty, reads `localStorage["gameSave"]`; otherwise parses the input text. In both cases calls `createGameFromObj(gameObj)`.
+`GameManager.createGameFromObj(gameObj)` replaces `this.game`, updates display and controller references, recreates upgrade displays via `gameDisplay.createDisplays`, then filters `lockedUpgradeDisplays`: purchased `OneTimeUpgrade` displays are immediately hidden (`.hide()`) and excluded from the locked list so `revealUpgrades()` cannot re-show them. `doPageSetup()` re-initializes the UI.
 
-`GameManager.createGameFromObj(gameObj)` replaces `this.game` with a new `Game(gameObj)`, updates `gameDisplay.game` and `gameController.game` references, recreates upgrade display instances via `gameDisplay.createDisplays` (which clears old DOM nodes), resets `gameDisplay.lockedUpgradeDisplays` to the new display list, and calls `doPageSetup()` to re-initialize the UI.
-
-When loading a saved game, `Game.createGameFromObj` restores score, scoreMulti, goal, characterPool, and upgrades. For each upgrade, cost/owned/key are overwritten from the save. If a `OneTimeUpgrade` has `owned > 0`, its `onPurchase` callback fires immediately to re-apply its side effects (e.g. re-adding letters to the pool).
+**CharacterPool save format** — New saves: `[purchaseChar, setsConfig]` where `setsConfig` is `Record<string, { chars, enabled }>`. Old saves (prior to named sets): `[purchaseChar, poolObj]` where `poolObj` is a flat `Record<string, string>`. Distinguished on load by checking if the second-element values are strings (old) or objects (new). Old saves are reconstructed into sets by matching keys against `getSymbols()` and `getLetters()`; all sets present in the old pool default to enabled. If a set is absent from the old pool, it is not added. This means disabled-set state is only preserved in new-format saves — backward compat defaults to all unlocked sets enabled.
 
 ---
 
 ## DOM Structure
 
-The page has three layout regions: `.header` (title + save/load controls), `.center` (stat displays, input area, goal display, upgrade cards), `.footer` (attribution). The `.inputs` grid places `.auto-inputs` in column 1 and `.typing-input` in column 2. `.unavailable` is `display: none` — used to hide stat rows, upgrade cards, and auto-input fields until the relevant conditions are met.
+The page has three layout regions: `.header` (title + save/load controls), `.center` (stat displays, interaction zones, upgrade cards), `.footer` (attribution).
+
+`.center` is a vertical flex column containing:
+- `.stat-displays` — score and multiplier displays
+- `.interaction-zones` — horizontal flex row with three zones:
+  - `.zone-left` (flex: 1): `.auto-inputs` — auto-typer input fields stacked vertically
+  - `.zone-center` (flex: 2): `.typing-input` + `.goal-display` stacked vertically
+  - `.zone-right` (flex: 1): `.game-settings` panel — hidden until 2+ char sets are available; contains `.game-settings-title` and `.char-set-toggles` (checkbox labels added dynamically)
+- `.upgrades` — upgrade cards in a horizontal flex row
+
+`.unavailable` is `display: none` — used to hide stat rows, upgrade cards, auto-input fields, and the game-settings panel until conditions are met.
 
 ---
 
 ## Infrastructure
 
-TypeScript source lives in `src/`, compiled via `tsc` to `dist/` (gitignored). `npm run build` runs the compiler. Primary deployment target is GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`) that compiles TypeScript and deploys. A Docker setup (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) is also provided for local development — the Dockerfile uses a multi-stage build (Node for compilation, Debian/Nginx for serving).
+TypeScript source lives in `src/`, compiled via `tsc` to `dist/` (gitignored). `npm run build` runs the compiler. Primary deployment target is GitHub Pages via a GitHub Actions workflow (`.github/workflows/deploy.yml`) that compiles TypeScript and deploys. A Docker setup (`Dockerfile`, `docker-compose.yml`, `nginx.conf`) is also provided for local development.

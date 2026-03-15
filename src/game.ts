@@ -12,7 +12,7 @@ export class Game {
 		this.score = 0
 		this.scoreMulti = 1
 		this.goal = ""
-		this.characterPool = new CharacterPool("$", getSymbols())
+		this.characterPool = new CharacterPool("$")
 		this.upgrades = []
 		if (gameObj) {
 			this.createGameFromObj(gameObj)
@@ -26,7 +26,8 @@ export class Game {
 		this.score = 0
 		this.scoreMulti = 1
 		this.goal = ""
-		this.characterPool = new CharacterPool("$", getSymbols())
+		this.characterPool = new CharacterPool("$")
+		this.characterPool.addSet("symbols", getSymbols())
 		this.upgrades = []
 		this.makeUpgrades()
 	}
@@ -38,8 +39,10 @@ export class Game {
 		else {
 			throw new Error("Create game object invalid")
 		}
+		let restoredScoreMulti = 1
 		if ("scoreMulti" in gameObj && typeof gameObj.scoreMulti === "number") {
 			this.scoreMulti = gameObj.scoreMulti
+			restoredScoreMulti = gameObj.scoreMulti
 		}
 		else {
 			throw new Error("Create game object invalid")
@@ -51,8 +54,18 @@ export class Game {
 			throw new Error("Create game object invalid")
 		}
 		if ("characterPool" in gameObj && typeof gameObj.characterPool === "string") {
-			const jsonPool = JSON.parse(gameObj.characterPool) as [string, Record<string, string>]
-			this.characterPool = new CharacterPool(jsonPool[0], jsonPool[1])
+			const jsonPool = JSON.parse(gameObj.characterPool) as unknown[]
+			const purchaseChar = jsonPool[0] as string
+			const secondElem = jsonPool[1] as Record<string, unknown>
+			const firstValue = Object.values(secondElem)[0]
+			if (firstValue === undefined || typeof firstValue === "string") {
+				this.characterPool = CharacterPool.fromOldSave(purchaseChar, secondElem as Record<string, string>)
+			} else {
+				this.characterPool = CharacterPool.fromSave(
+					purchaseChar,
+					secondElem as Record<string, { chars: Record<string, string>, enabled: boolean }>
+				)
+			}
 		}
 		else {
 			throw new Error("Create game object invalid")
@@ -67,11 +80,11 @@ export class Game {
 				upgrade.owned = gameUpgrade.owned as number
 				upgrade.key = gameUpgrade.key as string
 				if (upgrade instanceof OneTimeUpgrade && upgrade.owned > 0) {
-					console.log(upgrade)
 					upgrade.onPurchase()
 				}
 				i++
 			}
+			this.scoreMulti = restoredScoreMulti
 		}
 		else {
 			throw new Error("Create game object invalid")
@@ -120,7 +133,8 @@ export class Game {
 			500,
 			4 / 5,
 			this.characterPool.generateKey(10, usedKeys),
-			() => this.addLetters()
+			() => this.addLetters(),
+			10
 		)
 		this.upgrades.push(unlockLettersUpgrade)
 		const newTouchTyper = new Upgrade(
@@ -138,6 +152,14 @@ export class Game {
 	addLetters(): void {
 		this.scoreMulti *= 1.5
 		this.characterPool.addLetters()
+	}
+
+	regenerateAllKeys(): void {
+		const usedKeys = new Set<string>()
+		for (const upgrade of this.upgrades) {
+			const length = upgrade.keyLength + (upgrade.owned * upgrade.keyIncrease)
+			upgrade.key = this.characterPool.generateKey(length, usedKeys)
+		}
 	}
 
 	returnUpgradeByKey(input: string): Upgrade | undefined {

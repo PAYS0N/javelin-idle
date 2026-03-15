@@ -37,6 +37,7 @@ export class GameController {
 				this.display.revealUpgrades()
 				this.display.displayUpgrades()
 				this.display.displayScore()
+				this.display.updateSettingsPanel()
 			}
 			requestAnimationFrame(tick)
 		}
@@ -69,6 +70,9 @@ export class GameController {
 				this.attemptUpgradePurchase(upgrade)
 				if (upgrade instanceof OneTimeUpgrade) {
 					this.display.getDisplayByName(upgrade.name).hide()
+					this.game.regenerateAllKeys()
+					const nextGoal = this.game.updateGoal()
+					this.display.displayGoal(nextGoal)
 				}
 				return
 			}

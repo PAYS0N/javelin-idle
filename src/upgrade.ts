@@ -44,8 +44,8 @@ export class Upgrade {
 export class OneTimeUpgrade extends Upgrade {
 	onPurchase: () => void
 
-	constructor(name: string, cost: number, multi: number, key: string, onPurchase: () => void) {
-		super(name, cost, 0, multi, key, 0, 0, 0)
+	constructor(name: string, cost: number, multi: number, key: string, onPurchase: () => void, keyLength = 0) {
+		super(name, cost, 0, multi, key, keyLength, 0, 0)
 		this.onPurchase = onPurchase
 	}
 

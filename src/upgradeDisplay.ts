@@ -31,7 +31,9 @@ export class UpgradeDisplay {
 		if (this.upgrade.owned > 0 && !this.isRevealed) {
 			safeQueryHTMLElement(".upgrade-owned", this.purchaseHtml).classList.remove("unavailable")
 			safeQueryHTMLElement(".upgrade-chps", this.purchaseHtml).classList.remove("unavailable")
-			this.autoTypeHtml.classList.remove("unavailable")
+			if (this.upgrade.value > 0) {
+				this.autoTypeHtml.classList.remove("unavailable")
+			}
 			this.isRevealed = true
 		}
 	}

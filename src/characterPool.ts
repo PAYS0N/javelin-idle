@@ -1,3 +1,8 @@
+interface CharSet {
+	chars: Record<string, string>
+	enabled: boolean
+}
+
 function getLetters(): Record<string, string> {
 	return {
 		"a": "a",
@@ -56,15 +61,55 @@ export function getSymbols(): Record<string, string> {
 
 export class CharacterPool {
 	purchaseChar: string
+	sets: Record<string, CharSet>
 	pool: Record<string, string>
 
-	constructor(purchaseChar = "$", startingMap: Record<string, string> = {}) {
+	constructor(purchaseChar = "$") {
 		this.purchaseChar = purchaseChar
-		this.pool = startingMap
+		this.sets = {}
+		this.pool = {}
+	}
+
+	private rebuildPool(): void {
+		this.pool = {}
+		for (const set of Object.values(this.sets)) {
+			if (set.enabled) {
+				Object.assign(this.pool, set.chars)
+			}
+		}
+	}
+
+	addSet(name: string, chars: Record<string, string>): void {
+		if (name in this.sets) {
+			this.sets[name].chars = chars
+		} else {
+			this.sets[name] = { chars, enabled: true }
+		}
+		this.rebuildPool()
+	}
+
+	toggleSet(name: string, enabled: boolean): boolean {
+		if (!enabled) {
+			const enabledCount = Object.values(this.sets).filter(s => s.enabled).length
+			if (enabledCount <= 1) {
+				return false
+			}
+		}
+		this.sets[name].enabled = enabled
+		this.rebuildPool()
+		return true
+	}
+
+	isSetEnabled(name: string): boolean {
+		return this.sets[name]?.enabled ?? false
+	}
+
+	getSetNames(): string[] {
+		return Object.keys(this.sets)
 	}
 
 	addLetters(): void {
-		Object.assign(this.pool, getLetters())
+		this.addSet("letters", getLetters())
 	}
 
 	getSymbolByKey(key: string): string {
@@ -95,10 +140,44 @@ export class CharacterPool {
 	}
 
 	toString(): string {
-		const poolObj: Record<string, string> = {}
-		for (const key in this.pool) {
-			poolObj[key] = this.pool[key]
+		const setsObj: Record<string, { chars: Record<string, string>, enabled: boolean }> = {}
+		for (const [name, set] of Object.entries(this.sets)) {
+			setsObj[name] = { chars: set.chars, enabled: set.enabled }
 		}
-		return JSON.stringify([this.purchaseChar, poolObj])
+		return JSON.stringify([this.purchaseChar, setsObj])
+	}
+
+	static fromSave(purchaseChar: string, setsData: Record<string, { chars: Record<string, string>, enabled: boolean }>): CharacterPool {
+		const cp = new CharacterPool(purchaseChar)
+		for (const [name, data] of Object.entries(setsData)) {
+			cp.sets[name] = { chars: data.chars, enabled: data.enabled }
+		}
+		cp.rebuildPool()
+		return cp
+	}
+
+	static fromOldSave(purchaseChar: string, poolObj: Record<string, string>): CharacterPool {
+		const cp = new CharacterPool(purchaseChar)
+		const symbolKeys = new Set(Object.keys(getSymbols()))
+		const letterKeys = new Set(Object.keys(getLetters()))
+		const symbolsInPool: Record<string, string> = {}
+		const lettersInPool: Record<string, string> = {}
+		for (const [k, v] of Object.entries(poolObj)) {
+			if (symbolKeys.has(k)) {
+				symbolsInPool[k] = v
+			} else if (letterKeys.has(k)) {
+				lettersInPool[k] = v
+			}
+		}
+		if (Object.keys(symbolsInPool).length > 0) {
+			cp.sets["symbols"] = { chars: symbolsInPool, enabled: true }
+		} else {
+			cp.sets["symbols"] = { chars: getSymbols(), enabled: true }
+		}
+		if (Object.keys(lettersInPool).length > 0) {
+			cp.sets["letters"] = { chars: lettersInPool, enabled: true }
+		}
+		cp.rebuildPool()
+		return cp
 	}
 }

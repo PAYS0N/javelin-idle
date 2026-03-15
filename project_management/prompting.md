@@ -2,6 +2,7 @@ Compose a prompt for a new session task to do the indicated work item.
 Include all the context someone would need, both practically code files and cdocs.
 The prompt should likely include an instruction to read project_management/manifest.md and project_management/cdocs/system.md.
 Where applicable, the prompt should indicate that project_management/style.md should be followed when coding.
+If there are management decisions that need to be made before the prompt can be created, ask the user, don't decide yourself.
 It should indicate that the plan must be presented first, before code changes.
 It should indicate that if manually code tracing for more than 20 seconds, it should implement helpful logging and ask the user for it's output.
 The prompt should indicate the following workflow item in addition to the task definition: 

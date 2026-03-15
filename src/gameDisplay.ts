@@ -9,6 +9,8 @@ export class GameDisplay {
 	userInput: HTMLInputElement
 	goalDisplay: HTMLElement
 	upgradesDisplay: HTMLElement
+	settingsPanel: HTMLElement
+	charSetToggles: HTMLElement
 	upgradeDisplays: UpgradeDisplay[]
 	lockedUpgradeDisplays: UpgradeDisplay[]
 
@@ -18,6 +20,8 @@ export class GameDisplay {
 		this.userInput = document.querySelector(".typing-input") as HTMLInputElement
 		this.goalDisplay = safeQueryHTMLElement(".goal-value")
 		this.upgradesDisplay = safeQueryHTMLElement(".upgrades")
+		this.settingsPanel = safeQueryHTMLElement(".game-settings")
+		this.charSetToggles = safeQueryHTMLElement(".char-set-toggles")
 		this.upgradeDisplays = this.createDisplays(game.upgrades)
 		this.lockedUpgradeDisplays = [...this.upgradeDisplays]
 	}
@@ -105,6 +109,47 @@ export class GameDisplay {
 			if (this.game.score >= display.threshold) {
 				display.reveal()
 				this.lockedUpgradeDisplays.splice(this.lockedUpgradeDisplays.indexOf(display), 1)
+			}
+		}
+	}
+
+	updateSettingsPanel(): void {
+		const setNames = this.game.characterPool.getSetNames()
+		if (setNames.length < 2) {
+			this.settingsPanel.classList.add("unavailable")
+			return
+		}
+		this.settingsPanel.classList.remove("unavailable")
+		for (const name of setNames) {
+			const existing = this.charSetToggles.querySelector(`[data-set-name="${name}"]`)
+			if (!existing) {
+				const label = document.createElement("label")
+				label.classList.add("char-set-toggle")
+
+				const checkbox = document.createElement("input")
+				checkbox.type = "checkbox"
+				checkbox.dataset.setName = name
+				checkbox.checked = this.game.characterPool.isSetEnabled(name)
+				checkbox.addEventListener("change", () => {
+					const success = this.game.characterPool.toggleSet(name, checkbox.checked)
+					if (!success) {
+						checkbox.checked = true
+						return
+					}
+					this.game.regenerateAllKeys()
+					const nextGoal = this.game.updateGoal()
+					this.displayGoal(nextGoal)
+				})
+
+				const labelText = document.createElement("span")
+				labelText.textContent = name.charAt(0).toUpperCase() + name.slice(1)
+
+				label.appendChild(checkbox)
+				label.appendChild(labelText)
+				this.charSetToggles.appendChild(label)
+			} else {
+				const checkbox = existing as HTMLInputElement
+				checkbox.checked = this.game.characterPool.isSetEnabled(name)
 			}
 		}
 	}
