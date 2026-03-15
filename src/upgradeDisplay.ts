@@ -10,6 +10,7 @@ export class UpgradeDisplay {
 	isRevealed: boolean
 	maxDigitsToDisplay: number
 	threshold: number
+	pendingScore: number
 
 	constructor(upgrade: Upgrade, displayHtml: HTMLElement, autoTypeHtml: HTMLInputElement, thresholdMulti: number) {
 		this.upgrade = upgrade
@@ -19,6 +20,7 @@ export class UpgradeDisplay {
 		this.isRevealed = false
 		this.maxDigitsToDisplay = 4
 		this.threshold = this.upgrade.cost * thresholdMulti
+		this.pendingScore = 0
 	}
 
 	display(): void {
@@ -42,18 +44,23 @@ export class UpgradeDisplay {
 		this.purchaseHtml.classList.add("unavailable")
 	}
 
-	displayAutoScore(characterPool: CharacterPool): void {
+	displayAutoScore(characterPool: CharacterPool): number {
+		this.pendingScore += this.upgrade.value
 		let symbolsToAdd = this.upgrade.value * 4
 		const autoInput = this.autoTypeHtml
 		const spaceRemaining = this.maxDigitsToDisplay - autoInput.value.length
+		let scoreGain = 0
 		if (symbolsToAdd >= spaceRemaining) {
 			symbolsToAdd = (symbolsToAdd - spaceRemaining) % this.maxDigitsToDisplay
 			autoInput.value = ""
+			scoreGain = this.pendingScore
+			this.pendingScore = 0
 			this.showInputSuccess()
 		}
 		for (let i = 0; i < symbolsToAdd; i++) {
 			autoInput.value += characterPool.getRandomChar()
 		}
+		return scoreGain
 	}
 
 	showInputSuccess(): void {
