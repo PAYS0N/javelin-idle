@@ -103,7 +103,7 @@ Arrow keys append their unicode symbol to the input value.
 
 `GameDisplay` exposes input abstraction methods (`getValue`, `setValue`, `appendToInput`, `focusInput`, `hasError`, `clearError`, `showError`) so the controller never accesses `userInput` directly for state management.
 
-`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()` (tracked by `ownedStatsShown`), it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual char-token elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates char-token children in `displayAutoScore()` rather than using an `<input>` `.value`.
+`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()` (tracked by `ownedStatsShown`), it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual char-token elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates char-token children in `displayAutoScore()` rather than using an `<input>` `.value`. `display()` caches `renderedKey`, `renderedCost`, and `renderedOwned` — DOM writes for those fields are skipped when the backing value is unchanged, since they only change on purchase.
 
 ---
 

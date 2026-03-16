@@ -14,7 +14,10 @@ export class GameDisplay {
 	upgradeDisplays: UpgradeDisplay[]
 	lockedUpgradeDisplays: UpgradeDisplay[]
 	onSetToggled: ((name: string, enabled: boolean) => boolean) | null
+	onSpacingToggled: ((enabled: boolean) => void) | null
 	private renderedSetCount: number
+	private spacingToggleRendered: boolean
+	private spacingToggles: HTMLElement
 
 	constructor(game: Game) {
 		this.game = game
@@ -24,8 +27,11 @@ export class GameDisplay {
 		this.upgradesDisplay = safeQueryHTMLElement(".upgrades")
 		this.settingsPanel = safeQueryHTMLElement(".game-settings")
 		this.charSetToggles = safeQueryHTMLElement(".char-set-toggles")
+		this.spacingToggles = safeQueryHTMLElement(".spacing-toggles")
 		this.onSetToggled = null
+		this.onSpacingToggled = null
 		this.renderedSetCount = 0
+		this.spacingToggleRendered = false
 		this.upgradeDisplays = this.createDisplays(game.upgrades)
 		this.lockedUpgradeDisplays = [...this.upgradeDisplays]
 	}
@@ -72,9 +78,15 @@ export class GameDisplay {
 		flashClass(this.userInput, "green-background", 200)
 	}
 
-	displayGoal(symbol: string): void {
+	displayGoal(goal: string): void {
 		clearChildren(this.goalDisplay)
-		this.goalDisplay.appendChild(createCharToken(symbol))
+		for (const char of goal) {
+			const token = createCharToken(char)
+			if (char === " ") {
+				token.classList.add("space-token")
+			}
+			this.goalDisplay.appendChild(token)
+		}
 	}
 
 	displayUpgrades(): void {
@@ -124,11 +136,13 @@ export class GameDisplay {
 
 	updateSettingsPanel(): void {
 		const setNames = this.game.characterPool.getSetNames()
-		if (setNames.length < 2) {
+		const spacingUpgrade = this.game.upgrades.find(u => u.name === "Unlock Spacing")
+		const spacingUnlocked = spacingUpgrade !== undefined && spacingUpgrade.owned > 0
+		if (setNames.length < 2 && !spacingUnlocked) {
 			this.settingsPanel.classList.add("unavailable")
 			return
 		}
-		if (setNames.length === this.renderedSetCount) {
+		if (setNames.length === this.renderedSetCount && this.spacingToggleRendered === spacingUnlocked) {
 			return
 		}
 		this.renderedSetCount = setNames.length
@@ -159,6 +173,27 @@ export class GameDisplay {
 				label.appendChild(labelText)
 				this.charSetToggles.appendChild(label)
 			}
+		}
+		if (spacingUnlocked && !this.spacingToggleRendered) {
+			this.spacingToggleRendered = true
+			const label = document.createElement("label")
+			label.classList.add("char-set-toggle")
+
+			const checkbox = document.createElement("input")
+			checkbox.type = "checkbox"
+			checkbox.checked = this.game.spacingMode
+			checkbox.addEventListener("change", () => {
+				if (this.onSpacingToggled) {
+					this.onSpacingToggled(checkbox.checked)
+				}
+			})
+
+			const labelText = document.createElement("div")
+			labelText.textContent = "Spacing"
+
+			label.appendChild(checkbox)
+			label.appendChild(labelText)
+			this.spacingToggles.appendChild(label)
 		}
 	}
 

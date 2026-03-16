@@ -5,16 +5,25 @@ import { Upgrade, OneTimeUpgrade } from "./upgrade.js"
 export class GameController {
 	game: Game
 	display: GameDisplay
+	private pendingValidation: ReturnType<typeof setTimeout> | null
 
 	constructor(game: Game, display: GameDisplay) {
 		this.game = game
 		this.display = display
+		this.pendingValidation = null
 	}
 
 	doGameSetup(): void {
 		this.display.userInput.addEventListener("keydown", (e) => { this.verifyInput(e) })
 		this.display.onSetToggled = (name, enabled) => this.handleSetToggle(name, enabled)
+		this.display.onSpacingToggled = (enabled) => this.handleSpacingToggle(enabled)
 		this.runGameLogic()
+	}
+
+	handleSpacingToggle(enabled: boolean): void {
+		this.game.spacingMode = enabled
+		const nextGoal = this.game.updateGoal()
+		this.display.displayGoal(nextGoal)
 	}
 
 	handleSetToggle(name: string, enabled: boolean): boolean {
@@ -61,8 +70,33 @@ export class GameController {
 	}
 
 	verifyInput(e: KeyboardEvent): void {
+		if (this.pendingValidation !== null) {
+			e.preventDefault()
+			if (e.key === " ") {
+				clearTimeout(this.pendingValidation)
+				this.pendingValidation = null
+				this.display.setValue("")
+				this.display.showError("---")
+			}
+			return
+		}
 		if (this.display.hasError()) {
 			this.display.clearError()
+		}
+		// Handle space explicitly for spacing mode (space is not in the char pool)
+		if (e.key === " " && this.game.spacingMode) {
+			e.preventDefault()
+			const input = this.display.getValue() + " "
+			if (this.isInputScorable(input)) {
+				this.display.setValue(input)
+				return this.inputCorrect()
+			}
+			if (this.game.goal.startsWith(input)) {
+				this.display.appendToInput(" ")
+			} else {
+				this.display.showError("---")
+			}
+			return
 		}
 		const input = this.getInput(e)
 		if (input === "ababvoidgloom*") {
@@ -72,7 +106,15 @@ export class GameController {
 		}
 		if (this.isInputScorable(input)) {
 			e.preventDefault()
-			return this.inputCorrect()
+			if (this.game.spacingMode && !this.game.goal.endsWith(" ")) {
+				this.pendingValidation = setTimeout(() => {
+					this.pendingValidation = null
+					this.inputCorrect()
+				}, 50)
+			} else {
+				return this.inputCorrect()
+			}
+			return
 		}
 		else {
 			const upgrade = this.game.findUpgradeByKey(input)

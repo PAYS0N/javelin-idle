@@ -10,6 +10,9 @@ export class UpgradeDisplay {
 	maxDigitsToDisplay: number
 	threshold: number
 	pendingScore: number
+	private renderedKey: string
+	private renderedCost: number
+	private renderedOwned: number
 
 	constructor(upgrade: Upgrade, displayHtml: HTMLElement, autoTypeHtml: HTMLElement, thresholdMulti: number) {
 		this.upgrade = upgrade
@@ -19,13 +22,25 @@ export class UpgradeDisplay {
 		this.maxDigitsToDisplay = 4
 		this.threshold = this.upgrade.cost * thresholdMulti
 		this.pendingScore = 0
+		this.renderedKey = ""
+		this.renderedCost = -1
+		this.renderedOwned = -1
 	}
 
 	display(): void {
-		safeQueryHTMLElement(".cost-value", this.purchaseHtml).textContent = String(this.upgrade.cost)
-		this.renderKey(safeQueryHTMLElement(".key-value", this.purchaseHtml), this.upgrade.key)
-		safeQueryHTMLElement(".chps-value", this.purchaseHtml).textContent = String(this.upgrade.value * this.upgrade.owned)
-		safeQueryHTMLElement(".owned-value", this.purchaseHtml).textContent = String(this.upgrade.owned)
+		if (this.upgrade.cost !== this.renderedCost) {
+			this.renderedCost = this.upgrade.cost
+			safeQueryHTMLElement(".cost-value", this.purchaseHtml).textContent = String(this.upgrade.cost)
+		}
+		if (this.upgrade.key !== this.renderedKey) {
+			this.renderedKey = this.upgrade.key
+			this.renderKey(safeQueryHTMLElement(".key-value", this.purchaseHtml), this.upgrade.key)
+		}
+		if (this.upgrade.owned !== this.renderedOwned) {
+			this.renderedOwned = this.upgrade.owned
+			safeQueryHTMLElement(".chps-value", this.purchaseHtml).textContent = String(this.upgrade.value * this.upgrade.owned)
+			safeQueryHTMLElement(".owned-value", this.purchaseHtml).textContent = String(this.upgrade.owned)
+		}
 		if (this.upgrade.owned > 0 && !this.ownedStatsShown) {
 			safeQueryHTMLElement(".upgrade-owned", this.purchaseHtml).classList.remove("unavailable")
 			safeQueryHTMLElement(".upgrade-chps", this.purchaseHtml).classList.remove("unavailable")

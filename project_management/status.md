@@ -14,10 +14,13 @@
 
 | Description | Severity | Difficulty |
 |---|---|---|
+| add spacing to typing. Char entry becomes |x|| x||x || x |. Small wait after |x| and | x| to ensure no space is pressed after.  | high | high |
+| create plan for ever longer purchase string displays | high | medium |
 | implement auto-save to localStorage | high | low |
-| add second paradigm shift | medium | high |
+| make progress happen while tb isnt focused | high | low |
 | create 'help' features like 'view your worst chars' | medium | high |
+| move save/load buttons to a new options menu accessible from the header | medium | high |
+| add total ch/s | medium | low |
 | add sound for correct input | medium | low |
 | when loading a save, cards should remember whether they are unlocked; not determined from current score. | low | medium |
-| add spacing to typing. Char entry becomes |x|| x||x || x |. Small wait after |x| and | x| to ensure no space is pressed after.  | low | medium |
 

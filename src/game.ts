@@ -7,6 +7,7 @@ export class Game {
 	goal: string
 	characterPool: CharacterPool
 	upgrades: Upgrade[]
+	spacingMode: boolean
 
 	constructor(gameObj: Record<string, unknown> | null = null) {
 		this.score = 0
@@ -14,6 +15,7 @@ export class Game {
 		this.goal = ""
 		this.characterPool = new CharacterPool("$")
 		this.upgrades = []
+		this.spacingMode = false
 		if (gameObj) {
 			this.createGameFromObj(gameObj)
 		}
@@ -26,6 +28,7 @@ export class Game {
 		this.score = 0
 		this.scoreMulti = 1
 		this.goal = ""
+		this.spacingMode = false
 		this.characterPool = new CharacterPool("$")
 		this.characterPool.addSet("symbols", getSymbols())
 		this.upgrades = []
@@ -85,6 +88,9 @@ export class Game {
 				i++
 			}
 			this.scoreMulti = restoredScoreMulti
+			if ("spacingMode" in gameObj && typeof gameObj.spacingMode === "boolean") {
+				this.spacingMode = gameObj.spacingMode
+			}
 		}
 		else {
 			throw new Error("Create game object invalid")
@@ -96,6 +102,7 @@ export class Game {
 		gameObj.score = this.score
 		gameObj.scoreMulti = this.scoreMulti
 		gameObj.goal = this.goal
+		gameObj.spacingMode = this.spacingMode
 		gameObj.characterPool = this.characterPool.toString()
 		const upgradeStrings: string[] = []
 		for (const upgrade of this.upgrades) {
@@ -147,11 +154,25 @@ export class Game {
 			1,
 			1.75)
 		this.upgrades.push(newTouchTyper)
+		const unlockSpacingUpgrade = new OneTimeUpgrade(
+			"Unlock Spacing",
+			10000,
+			4 / 5,
+			this.characterPool.generateKey(12, usedKeys),
+			() => this.addSpacingMode(),
+			12
+		)
+		this.upgrades.push(unlockSpacingUpgrade)
 	}
 
 	addLetters(): void {
-		this.scoreMulti *= 1.5
+		this.scoreMulti *= 2.5
 		this.characterPool.addLetters()
+	}
+
+	addSpacingMode(): void {
+		this.scoreMulti *= 4
+		this.spacingMode = true
 	}
 
 	regenerateAllKeys(): void {
@@ -175,8 +196,14 @@ export class Game {
 	}
 
 	updateGoal(): string {
-		const symbolToType = this.characterPool.getRandomChar()
-		this.goal = symbolToType
-		return symbolToType
+		const baseChar = this.characterPool.getRandomChar()
+		if (this.spacingMode) {
+			const variant = Math.floor(Math.random() * 4)
+			const spacingVariants = [baseChar, " " + baseChar, baseChar + " ", " " + baseChar + " "]
+			this.goal = spacingVariants[variant]
+		} else {
+			this.goal = baseChar
+		}
+		return this.goal
 	}
 }
