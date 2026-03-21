@@ -53,19 +53,11 @@ export class Game {
 		else {
 			throw new Error("Create game object invalid")
 		}
-		if ("characterPool" in gameObj && typeof gameObj.characterPool === "string") {
-			const jsonPool = JSON.parse(gameObj.characterPool) as unknown[]
-			const purchaseChar = jsonPool[0] as string
-			const secondElem = jsonPool[1] as Record<string, unknown>
-			const firstValue = Object.values(secondElem)[0]
-			if (firstValue === undefined || typeof firstValue === "string") {
-				this.characterPool = CharacterPool.fromOldSave(purchaseChar, secondElem as Record<string, string>)
-			} else {
-				this.characterPool = CharacterPool.fromSave(
-					purchaseChar,
-					secondElem as Record<string, { chars: Record<string, string>, enabled: boolean }>
-				)
-			}
+		if ("characterPool" in gameObj && Array.isArray(gameObj.characterPool)) {
+			const poolData = gameObj.characterPool
+			const purchaseChar = poolData[0] as string
+			const setsData = poolData[1] as Record<string, { chars: string[], enabled: boolean }>
+			this.characterPool = CharacterPool.fromSave(purchaseChar, setsData)
 		}
 		else {
 			throw new Error("Create game object invalid")
@@ -96,7 +88,7 @@ export class Game {
 		gameObj.score = this.score
 		gameObj.scoreMulti = this.scoreMulti
 		gameObj.goal = this.goal
-		gameObj.characterPool = this.characterPool.toString()
+		gameObj.characterPool = this.characterPool.toSaveObj()
 		const upgradeStrings: string[] = []
 		for (const upgrade of this.upgrades) {
 			const upgradeObj = upgrade.toString()
@@ -140,13 +132,23 @@ export class Game {
 		const newTouchTyper = new Upgrade(
 			"New touch typer",
 			1000,
-			50,
+			75,
 			3 / 4,
 			this.characterPool.generateKey(10, usedKeys),
 			10,
 			1,
 			1.75)
 		this.upgrades.push(newTouchTyper)
+		const TouchTyper = new Upgrade(
+			"Touch typer",
+			5000,
+			250,
+			3 / 4,
+			this.characterPool.generateKey(14, usedKeys),
+			14,
+			1,
+			2.5)
+		this.upgrades.push(TouchTyper)
 	}
 
 	addLetters(): void {

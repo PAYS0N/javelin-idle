@@ -1,6 +1,7 @@
 import { Game } from "./game.js"
 import { GameDisplay } from "./gameDisplay.js"
 import { Upgrade, OneTimeUpgrade } from "./upgrade.js"
+import { getKeySymbol } from "./characterPool.js"
 
 export class GameController {
 	game: Game
@@ -57,7 +58,7 @@ export class GameController {
 	}
 
 	getInput(e: KeyboardEvent): string {
-		return this.display.getValue() + this.game.characterPool.getSymbolByKey(e.key)
+		return this.display.getValue() + (getKeySymbol(e.key) ?? e.key)
 	}
 
 	verifyInput(e: KeyboardEvent): void {
@@ -90,7 +91,7 @@ export class GameController {
 		}
 		if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
 			e.preventDefault()
-			this.display.appendToInput(this.game.characterPool.getSymbolByKey(e.key))
+			this.display.appendToInput(getKeySymbol(e.key)!)
 		}
 	}
 

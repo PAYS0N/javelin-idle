@@ -14,9 +14,9 @@ Javelin Idle is a browser-based idle/clicker typing game. The player types symbo
 
 ## Character Pool
 
-`CharacterPool` (characterPool.ts) holds typeable characters as named sets. Each set is a `CharSet`: `{ chars: Record<string, string>, enabled: boolean }`, stored in `sets: Record<string, CharSet>`. The active `pool: Record<string, string>` is derived from all enabled sets and rebuilt on any change.
+`CharacterPool` (characterPool.ts) holds typeable characters as named sets. Each set is a `CharSet`: `{ chars: string[], enabled: boolean }`, stored in `sets: Record<string, CharSet>`. The active `pool: string[]` is derived from all enabled sets and rebuilt on any change.
 
-The starting set is `"symbols"`: programming punctuation (`{}()`, `*+-=,.[]`, `:;'"`) plus four arrow keys mapped to unicode arrows (`↑↓←→`). The purchase character `$` is reserved and excluded from the pool.
+The starting set is `"symbols"`: programming punctuation and unicode arrows (`↑↓←→`). The purchase character `$` is reserved and excluded from the pool. Arrow key input is handled separately by the key mapping system (see Input & Game Loop), not by the pool.
 
 `addSet(name, chars)` registers a new set (enabled by default) and rebuilds the pool. If the set already exists, only `chars` is updated and the existing `enabled` state is preserved.
 
@@ -28,9 +28,9 @@ The starting set is `"symbols"`: programming punctuation (`{}()`, `*+-=,.[]`, `:
 
 `generateKey(length, existingKeys?)` builds a purchase key string: `$` followed by `n` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning.
 
-`getRandomChar()` picks a random value from the pool to serve as the next typing goal.
+`getRandomChar()` picks a random entry from the pool array to serve as the next typing goal.
 
-`toString()` serializes as `JSON.stringify([purchaseChar, setsConfig])` where `setsConfig` is `Record<string, { chars, enabled }>`. Static methods `fromSave(purchaseChar, setsConfig)` and `fromOldSave(purchaseChar, poolObj)` handle new and legacy save formats respectively.
+`toSaveObj()` returns a plain serializable tuple `[purchaseChar, setsConfig]` where `setsConfig` is `Record<string, { chars: string[], enabled: boolean }>`. This is embedded directly in the game JSON (not double-encoded). Static method `fromSave(purchaseChar, setsConfig)` reconstructs the pool from a saved tuple.
 
 ---
 
@@ -75,7 +75,9 @@ The starting set is `"symbols"`: programming punctuation (`{}()`, `*+-=,.[]`, `:
 
 `GameController` (gameController.ts) handles all interaction:
 
-**Input verification** — `keydown` on the typing input calls `verifyInput(e)`. If the input field is in error state, it is cleared first. The current input value plus the symbol mapped from `e.key` (via `characterPool.getSymbolByKey`) forms the candidate string. Three checks run in order:
+**Key mapping** — `getKeySymbol(key: string): string | undefined` (exported from `characterPool.ts`) maps physical key names to display symbols using a module-level `KEY_MAP`. Only the four arrow keys have non-identity entries (`ArrowUp → ↑`, etc.). `getInput(e)` uses `getKeySymbol(e.key) ?? e.key` to build the candidate string — regular keys fall through as-is.
+
+**Input verification** — `keydown` on the typing input calls `verifyInput(e)`. If the input field is in error state, it is cleared first. The current input value plus the mapped symbol from `getKeySymbol(e.key) ?? e.key` forms the candidate string. Three checks run in order:
 
 1. Cheat code: if candidate equals `"ababvoidgloom*"`, add 1000 to score and call `inputCorrect()`.
 2. Scorable: if candidate equals `game.goal`, call `inputCorrect()`.
@@ -103,7 +105,8 @@ Arrow keys append their unicode symbol to the input value.
 
 `GameDisplay` exposes input abstraction methods (`getValue`, `setValue`, `appendToInput`, `focusInput`, `hasError`, `clearError`, `showError`) so the controller never accesses `userInput` directly for state management.
 
-`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()` (tracked by `ownedStatsShown`), it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual char-token elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates char-token children in `displayAutoScore()` rather than using an `<input>` `.value`.
+`UpgradeDisplay` (upgradeDisplay.ts) manages a single upgrade card and its auto-input element (`autoTypeHtml: HTMLElement`). When `owned > 0` is first detected in `display()` (tracked by `ownedStatsShown`), it reveals the owned/chps rows; it only reveals the auto-input element if `upgrade.value > 0` (prevents showing an unused input box for `OneTimeUpgrade`). The upgrade key is rendered as individual char-token elements via `renderKey()`. The auto-input display is likewise a `<div>` that accumulates char-token children in `displayAutoScore()` rather than using an `<input>` `.value`. `display()` caches `renderedKey`, `renderedCost`, and `renderedOwned` — DOM writes for those fields are skipped when the backing value is unchanged, since they only change on purchase.
+
 
 ---
 
@@ -113,7 +116,7 @@ Arrow keys append their unicode symbol to the input value.
 
 `GameManager.createGameFromObj(gameObj)` replaces `this.game`, updates display and controller references, recreates upgrade displays via `gameDisplay.createDisplays`, then filters `lockedUpgradeDisplays`: purchased `OneTimeUpgrade` displays are immediately hidden (`.hide()`) and excluded from the locked list so `revealUpgrades()` cannot re-show them. `doPageSetup()` re-initializes the UI.
 
-**CharacterPool save format** — New saves: `[purchaseChar, setsConfig]` where `setsConfig` is `Record<string, { chars, enabled }>`. Old saves (prior to named sets): `[purchaseChar, poolObj]` where `poolObj` is a flat `Record<string, string>`. Distinguished on load by checking if the second-element values are strings (old) or objects (new). Old saves are reconstructed into sets by matching keys against `getSymbols()` and `getLetters()`; all sets present in the old pool default to enabled. If a set is absent from the old pool, it is not added. This means disabled-set state is only preserved in new-format saves — backward compat defaults to all unlocked sets enabled.
+**CharacterPool save format** — `[purchaseChar, setsConfig]` where `setsConfig` is `Record<string, { chars: string[], enabled: boolean }>`. This array is embedded directly in the game JSON object (not double-encoded as a nested JSON string). On load, `createGameFromObj` checks `Array.isArray(gameObj.characterPool)` and passes the tuple to `CharacterPool.fromSave`.
 
 ---
 

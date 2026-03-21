@@ -9,7 +9,7 @@ Javelin Idle is a browser-based idle/clicker game.
 
 - Challenge requests that are logically or structurally wrong, or where a clearly better approach exists (e.g. using markdown as a database). Briefly explain the concern and suggest an alternative before proceeding.
 
-- If tracing code execution manually to understand a bug requires more than 3–4 reasoning steps without certainty, add targeted logging statements, ask the user to run them, and use the output to diagnose rather than guessing.
+- remember: If tracing code execution manually to understand a bug requires more than 2-3 reasoning steps without certainty, add targeted logging statements, ask the user to run them, and use the output to diagnose rather than guessing.
 
 - All non-code files should be markdown unless specifically mentioned otherwise.
 
