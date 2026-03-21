@@ -99,6 +99,14 @@ export class CharacterPool {
 		return key
 	}
 
+	generateCompletionKey(length: number): string {
+		const chars: string[] = []
+		for (let i = 0; i < length; i++) {
+			chars.push(this.getRandomChar())
+		}
+		return chars.join("")
+	}
+
 	toSaveObj(): [string, Record<string, { chars: string[], enabled: boolean }>] {
 		const setsObj: Record<string, { chars: string[], enabled: boolean }> = {}
 		for (const [name, set] of Object.entries(this.sets)) {

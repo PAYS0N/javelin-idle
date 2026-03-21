@@ -6,10 +6,14 @@ import { getKeySymbol } from "./characterPool.js"
 export class GameController {
 	game: Game
 	display: GameDisplay
+	completionTarget: Upgrade | null
+	completionIndex: number
 
 	constructor(game: Game, display: GameDisplay) {
 		this.game = game
 		this.display = display
+		this.completionTarget = null
+		this.completionIndex = 0
 	}
 
 	doGameSetup(): void {
@@ -23,7 +27,7 @@ export class GameController {
 		if (!success) {
 			return false
 		}
-		this.game.regenerateAllKeys()
+		this.game.regenerateCompletionKeys()
 		const nextGoal = this.game.updateGoal()
 		this.display.displayGoal(nextGoal)
 		return true
@@ -65,7 +69,33 @@ export class GameController {
 		if (this.display.hasError()) {
 			this.display.clearError()
 		}
-		const input = this.getInput(e)
+		const char = getKeySymbol(e.key) ?? e.key
+		if (this.completionTarget) {
+			if (char === this.game.characterPool.purchaseChar) {
+				e.preventDefault()
+				this.exitCompletionMode()
+				return
+			}
+			if (char === this.completionTarget.completionKey[this.completionIndex]) {
+				e.preventDefault()
+				this.completionIndex++
+				this.display.setValue("")
+				this.display.showInputSuccess()
+				if (this.completionIndex >= this.completionTarget.completionKey.length) {
+					this.finishCompletionPurchase()
+				} else {
+					this.display.showCompletionChar(this.completionTarget.completionKey[this.completionIndex])
+					this.display.showCompletionProgress(this.completionIndex, this.completionTarget.completionKey.length)
+				}
+				return
+			}
+			if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+				e.preventDefault()
+				this.display.appendToInput(char)
+			}
+			return
+		}
+		const input = this.display.getValue() + char
 		if (input === "ababvoidgloom*") {
 			e.preventDefault()
 			this.game.score = this.game.score + 1000
@@ -75,23 +105,20 @@ export class GameController {
 			e.preventDefault()
 			return this.inputCorrect()
 		}
-		else {
-			const upgrade = this.game.findUpgradeByKey(input)
-			if (upgrade) {
-				e.preventDefault()
-				this.attemptUpgradePurchase(upgrade)
-				if (upgrade instanceof OneTimeUpgrade) {
-					this.display.getDisplayByName(upgrade.name).hide()
-					this.game.regenerateAllKeys()
-					const nextGoal = this.game.updateGoal()
-					this.display.displayGoal(nextGoal)
-				}
-				return
+		const upgrade = this.game.findUpgradeByKey(input)
+		if (upgrade) {
+			e.preventDefault()
+if (this.game.score >= upgrade.cost) {
+				this.display.setValue("")
+				this.enterCompletionMode(upgrade)
+			} else {
+				this.display.showError("---")
 			}
+			return
 		}
 		if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
 			e.preventDefault()
-			this.display.appendToInput(getKeySymbol(e.key)!)
+			this.display.appendToInput(char)
 		}
 	}
 
@@ -115,17 +142,44 @@ export class GameController {
 		this.display.displayGoal(nextGoal)
 	}
 
+	enterCompletionMode(upgrade: Upgrade): void {
+		this.completionTarget = upgrade
+		this.completionIndex = 0
+		this.display.getDisplayByName(upgrade.name).purchaseHtml.classList.add("completion-active")
+		this.display.showCompletionChar(upgrade.completionKey[0])
+		this.display.showCompletionProgress(0, upgrade.completionKey.length)
+	}
+
+	exitCompletionMode(): void {
+		this.display.getDisplayByName(this.completionTarget!.name).purchaseHtml.classList.remove("completion-active")
+		this.completionTarget = null
+		this.completionIndex = 0
+		this.display.setValue("")
+		this.display.exitCompletionMode()
+	}
+
+	finishCompletionPurchase(): void {
+		const upgrade = this.completionTarget!
+		this.display.getDisplayByName(upgrade.name).purchaseHtml.classList.remove("completion-active")
+		this.completionTarget = null
+		this.completionIndex = 0
+		this.attemptUpgradePurchase(upgrade)
+		if (upgrade instanceof OneTimeUpgrade) {
+			this.display.getDisplayByName(upgrade.name).hide()
+			this.game.regenerateCompletionKeys()
+		}
+		this.display.exitCompletionMode()
+	}
+
 	attemptUpgradePurchase(upgrade: Upgrade): void {
 		if (this.game.score >= upgrade.cost) {
 			this.display.showInputSuccess()
 			this.display.setValue("")
 			this.game.score -= upgrade.cost
 			this.display.displayScore()
-			const existingKeys = new Set(this.game.upgrades.filter(u => u !== upgrade).map(u => u.key))
-			upgrade.purchase(this.game.characterPool, existingKeys)
-		}
-		else {
-			this.display.showError("---")
+			upgrade.purchase(this.game.characterPool)
+		} else {
+			console.error("attemptUpgradePurchase called with insufficient score — this should be unreachable")
 		}
 	}
 }

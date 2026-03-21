@@ -77,6 +77,7 @@ export class Game {
 				i++
 			}
 			this.scoreMulti = restoredScoreMulti
+			this.regenerateCompletionKeys()
 		}
 		else {
 			throw new Error("Create game object invalid")
@@ -105,7 +106,8 @@ export class Game {
 			20,
 			3,
 			3 / 4,
-			this.characterPool.generateKey(3, usedKeys),
+			this.characterPool.generateKey(1, usedKeys),
+			this.characterPool.generateCompletionKey(3),
 			3,
 			1 / 3,
 			.25)
@@ -115,7 +117,8 @@ export class Game {
 			80,
 			20,
 			3 / 4,
-			this.characterPool.generateKey(5, usedKeys),
+			this.characterPool.generateKey(1, usedKeys),
+			this.characterPool.generateCompletionKey(5),
 			5,
 			2 / 3,
 			.75)
@@ -124,7 +127,8 @@ export class Game {
 			"Unlock Letters",
 			500,
 			4 / 5,
-			this.characterPool.generateKey(10, usedKeys),
+			this.characterPool.generateKey(1, usedKeys),
+			this.characterPool.generateCompletionKey(10),
 			() => this.addLetters(),
 			10
 		)
@@ -134,21 +138,23 @@ export class Game {
 			1000,
 			75,
 			3 / 4,
-			this.characterPool.generateKey(10, usedKeys),
+			this.characterPool.generateKey(1, usedKeys),
+			this.characterPool.generateCompletionKey(10),
 			10,
 			1,
 			1.75)
 		this.upgrades.push(newTouchTyper)
-		const TouchTyper = new Upgrade(
+		const touchTyper = new Upgrade(
 			"Touch typer",
 			5000,
 			250,
 			3 / 4,
-			this.characterPool.generateKey(14, usedKeys),
+			this.characterPool.generateKey(1, usedKeys),
+			this.characterPool.generateCompletionKey(14),
 			14,
 			1,
 			2.5)
-		this.upgrades.push(TouchTyper)
+		this.upgrades.push(touchTyper)
 	}
 
 	addLetters(): void {
@@ -156,11 +162,10 @@ export class Game {
 		this.characterPool.addLetters()
 	}
 
-	regenerateAllKeys(): void {
-		const usedKeys = new Set<string>()
+	regenerateCompletionKeys(): void {
 		for (const upgrade of this.upgrades) {
 			const length = upgrade.keyLength + (upgrade.owned * upgrade.keyIncrease)
-			upgrade.key = this.characterPool.generateKey(length, usedKeys)
+			upgrade.completionKey = this.characterPool.generateCompletionKey(length)
 		}
 	}
 

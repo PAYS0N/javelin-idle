@@ -8,6 +8,8 @@ export class GameDisplay {
 	scoreDisplay: HTMLElement
 	userInput: HTMLInputElement
 	goalDisplay: HTMLElement
+	goalTitle: HTMLElement
+	completionProgress: HTMLElement
 	upgradesDisplay: HTMLElement
 	settingsPanel: HTMLElement
 	charSetToggles: HTMLElement
@@ -21,6 +23,11 @@ export class GameDisplay {
 		this.scoreDisplay = safeQueryHTMLElement(".score-value")
 		this.userInput = safeQueryHTMLElementInput(".typing-input")
 		this.goalDisplay = safeQueryHTMLElement(".goal-value")
+		this.goalTitle = safeQueryHTMLElement(".goal-title")
+		this.completionProgress = document.createElement("div")
+		this.completionProgress.classList.add("completion-progress")
+		this.completionProgress.classList.add("unavailable")
+		safeQueryHTMLElement(".goal-display").appendChild(this.completionProgress)
 		this.upgradesDisplay = safeQueryHTMLElement(".upgrades")
 		this.settingsPanel = safeQueryHTMLElement(".game-settings")
 		this.charSetToggles = safeQueryHTMLElement(".char-set-toggles")
@@ -75,6 +82,23 @@ export class GameDisplay {
 	displayGoal(symbol: string): void {
 		clearChildren(this.goalDisplay)
 		this.goalDisplay.appendChild(createCharToken(symbol))
+	}
+
+	showCompletionChar(char: string): void {
+		this.goalTitle.textContent = "Purchase: "
+		clearChildren(this.goalDisplay)
+		this.goalDisplay.appendChild(createCharToken(char))
+	}
+
+	showCompletionProgress(current: number, total: number): void {
+		this.completionProgress.classList.remove("unavailable")
+		this.completionProgress.textContent = current + "/" + total
+	}
+
+	exitCompletionMode(): void {
+		this.goalTitle.textContent = "Type: "
+		this.completionProgress.classList.add("unavailable")
+		this.displayGoal(this.game.goal)
 	}
 
 	displayUpgrades(): void {

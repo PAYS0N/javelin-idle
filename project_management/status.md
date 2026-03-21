@@ -14,7 +14,6 @@
 
 | Description | Severity | Difficulty |
 |---|---|---|
-| implement purchase mode completion flow (see purchase-mode-plan.md) | high | high |
 | add 'word' unlock, that adds top 100 words as a pool category. | high | medium |
 | implement auto-save to localStorage | high | low |
 | when a one time upgrade is purchased without enough money, the card should not disappear | high | low |
