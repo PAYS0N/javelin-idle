@@ -14,8 +14,8 @@
 
 | Description | Severity | Difficulty |
 |---|---|---|
+| implement purchase mode completion flow (see purchase-mode-plan.md) | high | high |
 | add 'word' unlock, that adds top 100 words as a pool category. | high | medium |
-| create plan for ever longer purchase string displays | high | medium |
 | implement auto-save to localStorage | high | low |
 | when a one time upgrade is purchased without enough money, the card should not disappear | high | low |
 | make progress happen while tab isnt focused | high | low |
@@ -28,4 +28,6 @@
 | first multi should be x5sed | medium | low |
 | multis should be disabled when pool is | medium | low |
 | when loading a save, cards should remember whether they are unlocked; not determined from current score. | low | medium |
+| add error flash on incorrect char during goal typing | low | low |
+| serialize only char set booleans instead of full char pool data | low | low |
 

@@ -13,6 +13,7 @@
 | [project_management/prompting.md](prompting.md) | Template instructions for generating task prompts |
 | [project_management/cdocs/system.md](cdocs/system.md) | Full system context: game loop, character pool, upgrades, input handling, display, and save/load |
 | [project_management/cdocs/style.md](cdocs/style.md) | Coding conventions: naming, type annotations, DOM access patterns, serialization, and timing |
+| [project_management/purchase-mode-plan.md](purchase-mode-plan.md) | Implementation plan for purchase key completion flow: selector keys + guided single-char typing |
 
 ---
 
