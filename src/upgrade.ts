@@ -7,12 +7,12 @@ export class Upgrade {
 	thresholdMulti: number
 	owned: number
 	key: string
-	completionKey: string
+	completionKey: string[]
 	keyLength: number
 	keyIncrease: number
 	value: number
 
-	constructor(name: string, cost: number, costIncrease: number, multi: number, key: string, completionKey: string, keyLength: number, keyIncrease: number, value: number) {
+	constructor(name: string, cost: number, costIncrease: number, multi: number, key: string, completionKey: string[], keyLength: number, keyIncrease: number, value: number) {
 		this.name = name
 		this.cost = cost
 		this.costIncrease = costIncrease
@@ -43,7 +43,7 @@ export class Upgrade {
 export class OneTimeUpgrade extends Upgrade {
 	onPurchase: () => void
 
-	constructor(name: string, cost: number, multi: number, key: string, completionKey: string, onPurchase: () => void, keyLength = 0) {
+	constructor(name: string, cost: number, multi: number, key: string, completionKey: string[], onPurchase: () => void, keyLength = 0) {
 		super(name, cost, 0, multi, key, completionKey, keyLength, 0, 0)
 		this.onPurchase = onPurchase
 	}

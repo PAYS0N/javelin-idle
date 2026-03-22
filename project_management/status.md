@@ -14,10 +14,10 @@
 
 | Description | Severity | Difficulty |
 |---|---|---|
-| add 'word' unlock, that adds top 100 words as a pool category. | high | medium |
-| implement auto-save to localStorage | high | low |
-| when a one time upgrade is purchased without enough money, the card should not disappear | high | low |
+| add system to determine whats a method to use to estimate what weights should be used for upgrades| high | high |
+| implement auto-save to localStorage | high |  medium |
 | make progress happen while tab isnt focused | high | low |
+| redesign the upgrade cards to take less space | high | low |
 | create 'help' features like 'view your worst chars' | medium | high |
 | move save/load buttons to a new options menu accessible from the header | medium | high |
 | add total ch/s | medium | low |
@@ -25,7 +25,9 @@
 | add sound for correct input | medium | low |
 | characters should have the same font always | medium | low |
 | first multi should be x5sed | medium | low |
+| the autotyper should ignore the game settings | medium | low |
 | multis should be disabled when pool is | medium | low |
+| add indicator that $ cancels completion mode | medium | low |
 | when loading a save, cards should remember whether they are unlocked; not determined from current score. | low | medium |
 | add error flash on incorrect char during goal typing | low | low |
 | serialize only char set booleans instead of full char pool data | low | low |

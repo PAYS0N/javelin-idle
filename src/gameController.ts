@@ -76,7 +76,8 @@ export class GameController {
 				this.exitCompletionMode()
 				return
 			}
-			if (char === this.completionTarget.completionKey[this.completionIndex]) {
+			const completionInput = (this.display.getValue() + char).trim()
+			if (completionInput === this.completionTarget.completionKey[this.completionIndex]) {
 				e.preventDefault()
 				this.completionIndex++
 				this.display.setValue("")
@@ -108,7 +109,7 @@ export class GameController {
 		const upgrade = this.game.findUpgradeByKey(input)
 		if (upgrade) {
 			e.preventDefault()
-if (this.game.score >= upgrade.cost) {
+			if (this.game.score >= upgrade.cost) {
 				this.display.setValue("")
 				this.enterCompletionMode(upgrade)
 			} else {
@@ -132,7 +133,7 @@ if (this.game.score >= upgrade.cost) {
 	}
 
 	isInputScorable(input: string): boolean {
-		return input === this.game.goal
+		return input.trim() === this.game.goal
 	}
 
 	doPageSetup(): void {

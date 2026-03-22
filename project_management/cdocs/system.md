@@ -22,15 +22,19 @@ The starting set is `"symbols"`: programming punctuation and unicode arrows (`�
 
 `addLetters()` calls `addSet("letters", getLetters())` to merge a–z into the pool.
 
+`addWords()` calls `addSet("words", getWords())` to merge the top 100 most common English words into the pool. Each word is a single pool entry (a multi-character string).
+
 `toggleSet(name, enabled)` enables or disables a named set. If disabling the set would leave zero enabled sets, the call is a no-op and returns `false`; otherwise it updates the state, rebuilds the pool, and returns `true`.
 
 `isSetEnabled(name)` and `getSetNames()` expose per-set state for the settings panel.
 
-`generateKey(length, existingKeys?)` builds a selector key string: `$` followed by `length` randomly sampled pool symbols. It retries until the key is not in `existingKeys`, then adds the new key to the set before returning. Used only for selector keys (always called with `length = 1` to produce 2-char keys like `$+`).
+`generateKey(length, existingKeys?)` builds a selector key string: `$` followed by `length` randomly sampled entries from the single-char pool (pool entries filtered to `length === 1`, falling back to the full pool if empty). Ensures selector keys remain short and typeable even when multi-char words are in the pool. Used only for selector keys (always called with `length = 1` to produce 2-char keys like `$+`).
 
-`generateCompletionKey(length)` builds a completion key string: `length` randomly sampled pool symbols with no `$` prefix and no uniqueness constraint.
+`generateCompletionKey(length)` returns a `string[]` of `length` entries randomly sampled from the full pool (including words). Each entry may be a single character or a multi-character word.
 
-`getRandomChar()` picks a random entry from the pool array to serve as the next typing goal.
+`getRandomChar()` picks a random entry from the pool array to serve as the next typing goal. May return a multi-character word if the words set is active.
+
+`getRandomSingleChar()` picks a random entry from the single-char pool (filtered to `length === 1`, falling back to full pool). Used by the auto-typer display so it never shows words in the animation slots.
 
 `toSaveObj()` returns a plain serializable tuple `[purchaseChar, setsConfig]` where `setsConfig` is `Record<string, { chars: string[], enabled: boolean }>`. This is embedded directly in the game JSON (not double-encoded). Static method `fromSave(purchaseChar, setsConfig)` reconstructs the pool from a saved tuple.
 
@@ -55,6 +59,7 @@ The starting set is `"symbols"`: programming punctuation and unicode arrows (`�
 | Unlock Letters (OneTime) | 500 | — | 10 | — | — | cost × 4/5 |
 | New touch typer | 1000 | 50 | 10 | 1 | 1.75 | cost × 3/4 |
 | Touch typer | 5000 | 250 | 14 | 1 | 2.5 | cost × 3/4 |
+| Unlock Words (OneTime) | 8000 | — | 12 | — | — | cost × 4/5 |
 
 `scoreSuccess()` adds `scoreMulti` to `score`. `updateGoal()` calls `characterPool.getRandomChar()` and stores the result as `goal`.
 
@@ -72,7 +77,7 @@ Each upgrade has two key components: a **selector key** (`key`) — always `$` +
 
 `purchase(characterPool)` increments `owned`, adds `costIncrease` to `cost`, and regenerates only `completionKey` with length `keyLength + (owned × keyIncrease)`. Selector key is unchanged.
 
-`OneTimeUpgrade extends Upgrade` with `owned` capped at 1 and an `onPurchase` callback that fires on purchase. Cost/key delta/value are all 0. Accepts an optional `keyLength` parameter (passed to `super`) so `regenerateCompletionKeys()` can correctly compute its completion key length. "Unlock Letters" passes `keyLength = 10` and `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×1.5 and calls `characterPool.addLetters()`.
+`OneTimeUpgrade extends Upgrade` with `owned` capped at 1 and an `onPurchase` callback that fires on purchase. Cost/key delta/value are all 0. Accepts an optional `keyLength` parameter (passed to `super`) so `regenerateCompletionKeys()` can correctly compute its completion key length. "Unlock Letters" passes `keyLength = 10` and `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×2.5 and calls `characterPool.addLetters()`. "Unlock Words" passes `keyLength = 12` and `() => game.addWords()` as its callback, which bumps `scoreMulti` by ×10 and calls `characterPool.addWords()`.
 
 Only the selector key (`key`) is serialized. Completion keys are regenerated fresh on load via `regenerateCompletionKeys()`.
 
@@ -84,18 +89,18 @@ Only the selector key (`key`) is serialized. Completion keys are regenerated fre
 
 **Key mapping** — `getKeySymbol(key: string): string | undefined` (exported from `characterPool.ts`) maps physical key names to display symbols using a module-level `KEY_MAP`. Only the four arrow keys have non-identity entries (`ArrowUp → ↑`, etc.). `getInput(e)` uses `getKeySymbol(e.key) ?? e.key` to build the candidate string — regular keys fall through as-is.
 
-**Completion mode** — `GameController` tracks `completionTarget: Upgrade | null` and `completionIndex: number`. When a player types a selector key (`$X`) matching an upgrade and has sufficient score, the controller enters completion mode for that upgrade. During completion mode, normal goal scoring is paused and the goal display shows the next character in the upgrade's completion sequence with a progress indicator (`x/n`).
+**Completion mode** — `GameController` tracks `completionTarget: Upgrade | null` and `completionIndex: number`. When a player types a selector key (`$X`) matching an upgrade and has sufficient score, the controller enters completion mode for that upgrade. During completion mode, normal goal scoring is paused and the goal display shows the current entry in the upgrade's `completionKey: string[]` sequence with a progress indicator (`x/n`). Each entry may be a single character or a multi-character word; the player types the full entry into the input field (accumulating keystrokes), and on match the index advances.
 
 **Input verification** — `keydown` on the typing input calls `verifyInput(e)`. If the input field is in error state, it is cleared first. Two main branches:
 
 *Completion mode active* (`completionTarget` is set):
 - If typed char is `$` (purchase char): exit completion mode, clear input, restore goal display.
-- If typed char matches `completionKey[completionIndex]`: advance index, clear input, flash green, show next char. If sequence is complete, execute purchase and exit completion mode.
-- If typed char doesn't match: character appears in input normally (no `preventDefault`). Arrow keys are escaped to their unicode symbols.
+- If `(getValue() + char).trim()` matches `completionKey[completionIndex]`: advance index, clear input, flash green, show next entry. If sequence is complete, execute purchase and exit completion mode.
+- If it doesn't match: character appears in input normally (no `preventDefault`). Arrow keys are escaped to their unicode symbols.
 
 *Normal mode* (`completionTarget` is null): the current input value plus the mapped symbol forms the candidate string. Three checks run in order:
 1. Cheat code: if candidate equals `"ababvoidgloom*"`, add 1000 to score and call `inputCorrect()`.
-2. Scorable: if candidate equals `game.goal`, call `inputCorrect()`.
+2. Scorable: if `candidate.trim()` equals `game.goal`, call `inputCorrect()`. The trim allows word goals to be scored even if the player's input has a leading space (e.g., from the spacebar).
 3. Selector key: if candidate matches any `upgrade.key` and `score >= cost`, clear input and enter completion mode. If not affordable, flash error.
 
 Arrow keys append their unicode symbol to the input value.

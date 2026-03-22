@@ -90,7 +90,7 @@ body {
 	display: flex;
 	flex-direction: row;
 
-	width: 80%;
+	width: 95%;
 }
 
 .stat-displays,
@@ -177,8 +177,6 @@ body {
 }
 
 .goal-value {
-	width: 3rem;
-
 	text-align: center;
 	font-family: monospace;
 }

@@ -155,11 +155,26 @@ export class Game {
 			1,
 			2.5)
 		this.upgrades.push(touchTyper)
+		const unlockWordsUpgrade = new OneTimeUpgrade(
+			"Unlock Words",
+			8000,
+			4 / 5,
+			this.characterPool.generateKey(1, usedKeys),
+			this.characterPool.generateCompletionKey(12),
+			() => this.addWords(),
+			12
+		)
+		this.upgrades.push(unlockWordsUpgrade)
 	}
 
 	addLetters(): void {
-		this.scoreMulti *= 1.5
+		this.scoreMulti *= 5
 		this.characterPool.addLetters()
+	}
+
+	addWords(): void {
+		this.scoreMulti *= 10
+		this.characterPool.addWords()
 	}
 
 	regenerateCompletionKeys(): void {

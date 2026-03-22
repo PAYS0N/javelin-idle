@@ -58,7 +58,7 @@ export class UpgradeDisplay {
 			this.showInputSuccess()
 		}
 		for (let i = 0; i < symbolsToAdd; i++) {
-			autoInput.appendChild(createCharToken(characterPool.getRandomChar()))
+			autoInput.appendChild(createCharToken(characterPool.getRandomSingleChar()))
 		}
 		return scoreGain
 	}

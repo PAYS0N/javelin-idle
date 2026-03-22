@@ -21,6 +21,21 @@ function getLetters(): string[] {
 	]
 }
 
+function getWords(): string[] {
+	return [
+		"a", "about", "all", "also", "and", "as", "at", "be", "because", "but",
+		"by", "can", "come", "could", "day", "do", "even", "find", "first", "for",
+		"from", "get", "give", "go", "have", "he", "her", "here", "him", "his",
+		"how", "i", "if", "in", "into", "it", "its", "just", "know", "like",
+		"look", "make", "man", "many", "me", "more", "my", "new", "no", "not",
+		"now", "of", "on", "one", "only", "or", "other", "our", "out", "people",
+		"say", "see", "she", "so", "some", "take", "tell", "than", "that", "the",
+		"their", "them", "then", "there", "these", "they", "thing", "think", "this", "those",
+		"time", "to", "two", "up", "use", "very", "want", "way", "we", "well",
+		"what", "when", "which", "who", "will", "with", "would", "year", "you", "your"
+	]
+}
+
 export function getSymbols(): string[] {
 	return [
 		"{", "}", "(", ")", "*", "+", "-", "^", "#", "<", ">", "&", "_",
@@ -82,16 +97,31 @@ export class CharacterPool {
 		this.addSet("letters", getLetters())
 	}
 
+	addWords(): void {
+		this.addSet("words", getWords())
+	}
+
 	getRandomChar(): string {
 		return this.pool[Math.floor(Math.random() * this.pool.length)]
 	}
 
+	getRandomSingleChar(): string {
+		const pool = this.getSingleCharPool()
+		return pool[Math.floor(Math.random() * pool.length)]
+	}
+
+	private getSingleCharPool(): string[] {
+		const single = this.pool.filter(s => s.length === 1)
+		return single.length > 0 ? single : this.pool
+	}
+
 	generateKey(length: number, existingKeys: Set<string> = new Set()): string {
+		const singleCharPool = this.getSingleCharPool()
 		let key: string
 		do {
 			const aChars = [this.purchaseChar]
 			for (let i = 0; i < length; i++) {
-				aChars.push(this.getRandomChar())
+				aChars.push(singleCharPool[Math.floor(Math.random() * singleCharPool.length)])
 			}
 			key = aChars.join("")
 		} while (existingKeys.has(key))
@@ -99,12 +129,12 @@ export class CharacterPool {
 		return key
 	}
 
-	generateCompletionKey(length: number): string {
-		const chars: string[] = []
+	generateCompletionKey(length: number): string[] {
+		const entries: string[] = []
 		for (let i = 0; i < length; i++) {
-			chars.push(this.getRandomChar())
+			entries.push(this.getRandomChar())
 		}
-		return chars.join("")
+		return entries
 	}
 
 	toSaveObj(): [string, Record<string, { chars: string[], enabled: boolean }>] {
