@@ -11,10 +11,13 @@
 | [project_management/status.md](status.md) | Active work, open items, and closed items tracking |
 | [project_management/cdoc.md](cdoc.md) | Template instructions for generating context documents |
 | [project_management/prompting.md](prompting.md) | Template instructions for generating task prompts |
-| [project_management/cdocs/system.md](cdocs/system.md) | Full system context: game loop, character pool, upgrades, input handling, display, and save/load |
+| [project_management/cdocs/character-pool.md](cdocs/character-pool.md) | CharacterPool class: named char sets, pool derivation, key generation, goal/auto-typer methods, serialization |
+| [project_management/cdocs/game-state.md](cdocs/game-state.md) | Entry & initialization, Game class fields, upgrade table, score/goal methods |
+| [project_management/cdocs/upgrades.md](cdocs/upgrades.md) | Upgrade and OneTimeUpgrade classes: selector vs completion keys, purchase logic, serialization |
+| [project_management/cdocs/input.md](cdocs/input.md) | GameController: key mapping, normal/completion mode input, game loop, auto-scoring |
+| [project_management/cdocs/display.md](cdocs/display.md) | GameDisplay and UpgradeDisplay: DOM methods, settings panel, upgrade cards, DOM structure |
+| [project_management/cdocs/persistence.md](cdocs/persistence.md) | Save/load wiring, save format, CharacterPool save format, infrastructure |
 | [project_management/cdocs/style.md](cdocs/style.md) | Coding conventions: naming, type annotations, DOM access patterns, serialization, and timing |
-| [project_management/purchase-mode-plan.md](purchase-mode-plan.md) | Implementation plan for purchase key completion flow: selector keys + guided single-char typing |
-
 ---
 
 ## Root Files
