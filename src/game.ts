@@ -1,5 +1,5 @@
 import { CharacterPool, getSymbols } from "./characterPool.js"
-import { Upgrade, OneTimeUpgrade } from "./upgrade.js"
+import { OneTimeUpgrade, Upgrade } from "./upgrade.js"
 
 export class Game {
 	score: number
@@ -16,8 +16,7 @@ export class Game {
 		this.upgrades = []
 		if (gameObj) {
 			this.createGameFromObj(gameObj)
-		}
-		else {
+		} else {
 			this.createGameFromEmpty()
 		}
 	}
@@ -35,34 +34,30 @@ export class Game {
 	createGameFromObj(gameObj: Record<string, unknown>): void {
 		if ("score" in gameObj && typeof gameObj.score === "number") {
 			this.score = Math.floor(gameObj.score)
-		}
-		else {
+		} else {
 			throw new Error("Create game object invalid")
 		}
 		let restoredScoreMulti = 1
 		if ("scoreMulti" in gameObj && typeof gameObj.scoreMulti === "number") {
 			this.scoreMulti = gameObj.scoreMulti
 			restoredScoreMulti = gameObj.scoreMulti
-		}
-		else {
+		} else {
 			throw new Error("Create game object invalid")
 		}
 		if ("goal" in gameObj && typeof gameObj.goal === "string") {
 			this.goal = gameObj.goal
-		}
-		else {
+		} else {
 			throw new Error("Create game object invalid")
 		}
 		if ("characterPool" in gameObj && Array.isArray(gameObj.characterPool)) {
 			const poolData = gameObj.characterPool
 			const purchaseChar = poolData[0] as string
-			const setsData = poolData[1] as Record<string, { chars: string[], enabled: boolean }>
+			const setsData = poolData[1] as Record<string, { chars: string[]; enabled: boolean }>
 			this.characterPool = CharacterPool.fromSave(purchaseChar, setsData)
-		}
-		else {
+		} else {
 			throw new Error("Create game object invalid")
 		}
-		if ("upgrades" in gameObj && gameObj.upgrades instanceof Array) {
+		if ("upgrades" in gameObj && Array.isArray(gameObj.upgrades)) {
 			this.upgrades = []
 			this.makeUpgrades()
 			let i = 0
@@ -78,8 +73,7 @@ export class Game {
 			}
 			this.scoreMulti = restoredScoreMulti
 			this.regenerateCompletionKeys()
-		}
-		else {
+		} else {
 			throw new Error("Create game object invalid")
 		}
 	}
@@ -110,7 +104,8 @@ export class Game {
 			this.characterPool.generateCompletionKey(3),
 			3,
 			1 / 3,
-			.25)
+			0.25,
+		)
 		this.upgrades.push(twoFingerTyper)
 		const practicedTwoFingerTyper = new Upgrade(
 			"Practiced two finger typer",
@@ -121,7 +116,8 @@ export class Game {
 			this.characterPool.generateCompletionKey(5),
 			5,
 			2 / 3,
-			.75)
+			0.75,
+		)
 		this.upgrades.push(practicedTwoFingerTyper)
 		const unlockLettersUpgrade = new OneTimeUpgrade(
 			"Unlock Letters",
@@ -130,7 +126,7 @@ export class Game {
 			this.characterPool.generateKey(1, usedKeys),
 			this.characterPool.generateCompletionKey(10),
 			() => this.addLetters(),
-			10
+			10,
 		)
 		this.upgrades.push(unlockLettersUpgrade)
 		const newTouchTyper = new Upgrade(
@@ -142,7 +138,8 @@ export class Game {
 			this.characterPool.generateCompletionKey(10),
 			10,
 			1,
-			1.75)
+			1.75,
+		)
 		this.upgrades.push(newTouchTyper)
 		const touchTyper = new Upgrade(
 			"Touch typer",
@@ -153,7 +150,8 @@ export class Game {
 			this.characterPool.generateCompletionKey(14),
 			14,
 			1,
-			2.5)
+			2.5,
+		)
 		this.upgrades.push(touchTyper)
 		const unlockWordsUpgrade = new OneTimeUpgrade(
 			"Unlock Words",
@@ -162,7 +160,7 @@ export class Game {
 			this.characterPool.generateKey(1, usedKeys),
 			this.characterPool.generateCompletionKey(12),
 			() => this.addWords(),
-			12
+			12,
 		)
 		this.upgrades.push(unlockWordsUpgrade)
 	}
@@ -179,7 +177,7 @@ export class Game {
 
 	regenerateCompletionKeys(): void {
 		for (const upgrade of this.upgrades) {
-			const length = upgrade.keyLength + (upgrade.owned * upgrade.keyIncrease)
+			const length = upgrade.keyLength + upgrade.owned * upgrade.keyIncrease
 			upgrade.completionKey = this.characterPool.generateCompletionKey(length)
 		}
 	}

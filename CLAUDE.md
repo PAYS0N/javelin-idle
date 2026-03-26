@@ -18,3 +18,5 @@ Javelin Idle is a browser-based idle/clicker game.
 - When asked to create project management files, create them in the project_management directory in root.
 
 - When asked to create a prompt, read project_management/prompting.md. Do not rely on memory, re-read it every time.
+
+- Before creating new source files, adding cross-module imports, or moving responsibilities between modules, read `project_management/standards/architecture.md`.

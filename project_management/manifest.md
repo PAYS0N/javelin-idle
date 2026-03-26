@@ -17,7 +17,11 @@
 | [project_management/cdocs/input.md](cdocs/input.md) | GameController: key mapping, normal/completion mode input, game loop, auto-scoring |
 | [project_management/cdocs/display.md](cdocs/display.md) | GameDisplay and UpgradeDisplay: DOM methods, settings panel, upgrade cards, DOM structure |
 | [project_management/cdocs/persistence.md](cdocs/persistence.md) | Save/load wiring, save format, CharacterPool save format, infrastructure |
-| [project_management/cdocs/style.md](cdocs/style.md) | Coding conventions: naming, type annotations, DOM access patterns, serialization, and timing |
+| [project_management/standards/style.md](standards/style.md) | Coding conventions: naming, type annotations, DOM access patterns, serialization, and timing |
+| [project_management/standards/architecture.md](standards/architecture.md) | Architecture conventions: module hierarchy, responsibilities, forbidden patterns, state mutation rules |
+| [project_management/architecture-baseline.md](architecture-baseline.md) | Mermaid diagrams of current architecture: dependency graph, layer boundaries, DOM access, state mutation flow |
+| [project_management/prompts/architecture-check.md](prompts/architecture-check.md) | Periodic health check prompt: regenerate diagrams, run forbidden pattern checks, compare to baseline, produce verdict |
+
 ---
 
 ## Root Files
@@ -30,7 +34,8 @@
 | [docker-compose.yml](../docker-compose.yml) | Docker Compose config for local development server |
 | [nginx.conf](../nginx.conf) | Nginx config for serving static files in the Docker container |
 | [tsconfig.json](../tsconfig.json) | TypeScript compiler configuration: strict mode, ES2020 target, ES modules, outputs to dist/ |
-| [package.json](../package.json) | npm package config with TypeScript dev dependency and build script |
+| [biome.json](../biome.json) | Biome linter/formatter configuration: tabs, no semicolons, architectural lint rules |
+| [package.json](../package.json) | npm package config with TypeScript and Biome dev dependencies, build/lint/check scripts |
 | [.gitignore](../.gitignore) | Git ignore rules for node_modules/ and dist/ |
 
 ---

@@ -11,11 +11,17 @@ The prompt should include only the cdocs relevant to the task — do not load al
 | Typing input / game loop / completion mode | `cdocs/input.md` |
 | UI / DOM layout / display rendering | `cdocs/display.md` |
 | Save / load / serialization | `cdocs/persistence.md` |
-| Code style / conventions | `cdocs/style.md` |
+| Code style / conventions | `standards/style.md` |
+| Architecture / module boundaries | `standards/architecture.md` |
 
-Where applicable, the prompt should indicate that project_management/cdocs/style.md should be followed when coding.
+Where applicable, the prompt should indicate that project_management/standards/style.md should be followed when coding.
+Where the task involves creating new files, adding imports, or changing module responsibilities, the prompt should indicate that project_management/standards/architecture.md should be read before planning.
 If there are management decisions that need to be made before the prompt can be created, ask the user, don't decide yourself.
 The prompt should indicate that the plan must be presented first, before code changes.
+Every prompt that involves code changes should include the following linter/compiler compliance block verbatim:
+
+> After any complete code change, run `npx biome check src/` and `npm run build`. Both must pass.
+> When the linter or compiler flags an issue, fix the underlying problem — do not suppress or work around it. If the linter warns about a non-null assertion (`!`), add a type guard or early return that narrows the type naturally. Do not swap `!` for `?.` when the types don't support it, and do not add `// biome-ignore`. The goal is to understand *why* the tool is complaining and write code that satisfies the constraint cleanly.
 The prompt should indicate the following workflow item in addition to the task definition:
 
 - Run this checklist after the user has declared the task done (make it clear to run this after completion is externally confirmed, not when it thinks it's done.):

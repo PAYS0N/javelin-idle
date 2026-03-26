@@ -1,7 +1,7 @@
-import { Game } from "./game.js"
-import { GameDisplay } from "./gameDisplay.js"
-import { Upgrade, OneTimeUpgrade } from "./upgrade.js"
 import { getKeySymbol } from "./characterPool.js"
+import type { Game } from "./game.js"
+import type { GameDisplay } from "./gameDisplay.js"
+import { OneTimeUpgrade, type Upgrade } from "./upgrade.js"
 
 export class GameController {
 	game: Game
@@ -17,7 +17,9 @@ export class GameController {
 	}
 
 	doGameSetup(): void {
-		this.display.userInput.addEventListener("keydown", (e) => { this.verifyInput(e) })
+		this.display.userInput.addEventListener("keydown", (e) => {
+			this.verifyInput(e)
+		})
 		this.display.onSetToggled = (name, enabled) => this.handleSetToggle(name, enabled)
 		this.runGameLogic()
 	}
@@ -100,11 +102,13 @@ export class GameController {
 		if (input === "ababvoidgloom*") {
 			e.preventDefault()
 			this.game.score = this.game.score + 1000
-			return this.inputCorrect()
+			this.inputCorrect()
+			return
 		}
 		if (this.isInputScorable(input)) {
 			e.preventDefault()
-			return this.inputCorrect()
+			this.inputCorrect()
+			return
 		}
 		const upgrade = this.game.findUpgradeByKey(input)
 		if (upgrade) {
@@ -152,7 +156,9 @@ export class GameController {
 	}
 
 	exitCompletionMode(): void {
-		this.display.getDisplayByName(this.completionTarget!.name).purchaseHtml.classList.remove("completion-active")
+		if (this.completionTarget) {
+			this.display.getDisplayByName(this.completionTarget.name).purchaseHtml.classList.remove("completion-active")
+		}
 		this.completionTarget = null
 		this.completionIndex = 0
 		this.display.setValue("")
@@ -160,7 +166,8 @@ export class GameController {
 	}
 
 	finishCompletionPurchase(): void {
-		const upgrade = this.completionTarget!
+		if (!this.completionTarget) return
+		const upgrade = this.completionTarget
 		this.display.getDisplayByName(upgrade.name).purchaseHtml.classList.remove("completion-active")
 		this.completionTarget = null
 		this.completionIndex = 0

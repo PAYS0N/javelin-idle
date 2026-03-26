@@ -16,31 +16,175 @@ export function getKeySymbol(key: string): string | undefined {
 
 function getLetters(): string[] {
 	return [
-		"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
-		"n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+		"a",
+		"b",
+		"c",
+		"d",
+		"e",
+		"f",
+		"g",
+		"h",
+		"i",
+		"j",
+		"k",
+		"l",
+		"m",
+		"n",
+		"o",
+		"p",
+		"q",
+		"r",
+		"s",
+		"t",
+		"u",
+		"v",
+		"w",
+		"x",
+		"y",
+		"z",
 	]
 }
 
 function getWords(): string[] {
 	return [
-		"a", "about", "all", "also", "and", "as", "at", "be", "because", "but",
-		"by", "can", "come", "could", "day", "do", "even", "find", "first", "for",
-		"from", "get", "give", "go", "have", "he", "her", "here", "him", "his",
-		"how", "i", "if", "in", "into", "it", "its", "just", "know", "like",
-		"look", "make", "man", "many", "me", "more", "my", "new", "no", "not",
-		"now", "of", "on", "one", "only", "or", "other", "our", "out", "people",
-		"say", "see", "she", "so", "some", "take", "tell", "than", "that", "the",
-		"their", "them", "then", "there", "these", "they", "thing", "think", "this", "those",
-		"time", "to", "two", "up", "use", "very", "want", "way", "we", "well",
-		"what", "when", "which", "who", "will", "with", "would", "year", "you", "your"
+		"a",
+		"about",
+		"all",
+		"also",
+		"and",
+		"as",
+		"at",
+		"be",
+		"because",
+		"but",
+		"by",
+		"can",
+		"come",
+		"could",
+		"day",
+		"do",
+		"even",
+		"find",
+		"first",
+		"for",
+		"from",
+		"get",
+		"give",
+		"go",
+		"have",
+		"he",
+		"her",
+		"here",
+		"him",
+		"his",
+		"how",
+		"i",
+		"if",
+		"in",
+		"into",
+		"it",
+		"its",
+		"just",
+		"know",
+		"like",
+		"look",
+		"make",
+		"man",
+		"many",
+		"me",
+		"more",
+		"my",
+		"new",
+		"no",
+		"not",
+		"now",
+		"of",
+		"on",
+		"one",
+		"only",
+		"or",
+		"other",
+		"our",
+		"out",
+		"people",
+		"say",
+		"see",
+		"she",
+		"so",
+		"some",
+		"take",
+		"tell",
+		"than",
+		"that",
+		"the",
+		"their",
+		"them",
+		"then",
+		"there",
+		"these",
+		"they",
+		"thing",
+		"think",
+		"this",
+		"those",
+		"time",
+		"to",
+		"two",
+		"up",
+		"use",
+		"very",
+		"want",
+		"way",
+		"we",
+		"well",
+		"what",
+		"when",
+		"which",
+		"who",
+		"will",
+		"with",
+		"would",
+		"year",
+		"you",
+		"your",
 	]
 }
 
 export function getSymbols(): string[] {
 	return [
-		"{", "}", "(", ")", "*", "+", "-", "^", "#", "<", ">", "&", "_",
-		"|", "?", "!", "~", "=", ",", ".", "[", "]", ":", ";", "\\",
-		"/", "`", "'", "\"", "↑", "↓", "←", "→"
+		"{",
+		"}",
+		"(",
+		")",
+		"*",
+		"+",
+		"-",
+		"^",
+		"#",
+		"<",
+		">",
+		"&",
+		"_",
+		"|",
+		"?",
+		"!",
+		"~",
+		"=",
+		",",
+		".",
+		"[",
+		"]",
+		":",
+		";",
+		"\\",
+		"/",
+		"`",
+		"'",
+		'"',
+		"↑",
+		"↓",
+		"←",
+		"→",
 	]
 }
 
@@ -75,7 +219,7 @@ export class CharacterPool {
 
 	toggleSet(name: string, enabled: boolean): boolean {
 		if (!enabled) {
-			const enabledCount = Object.values(this.sets).filter(s => s.enabled).length
+			const enabledCount = Object.values(this.sets).filter((s) => s.enabled).length
 			if (enabledCount <= 1) {
 				return false
 			}
@@ -111,7 +255,7 @@ export class CharacterPool {
 	}
 
 	private getSingleCharPool(): string[] {
-		const single = this.pool.filter(s => s.length === 1)
+		const single = this.pool.filter((s) => s.length === 1)
 		return single.length > 0 ? single : this.pool
 	}
 
@@ -137,15 +281,18 @@ export class CharacterPool {
 		return entries
 	}
 
-	toSaveObj(): [string, Record<string, { chars: string[], enabled: boolean }>] {
-		const setsObj: Record<string, { chars: string[], enabled: boolean }> = {}
+	toSaveObj(): [string, Record<string, { chars: string[]; enabled: boolean }>] {
+		const setsObj: Record<string, { chars: string[]; enabled: boolean }> = {}
 		for (const [name, set] of Object.entries(this.sets)) {
 			setsObj[name] = { chars: set.chars, enabled: set.enabled }
 		}
 		return [this.purchaseChar, setsObj]
 	}
 
-	static fromSave(purchaseChar: string, setsData: Record<string, { chars: string[], enabled: boolean }>): CharacterPool {
+	static fromSave(
+		purchaseChar: string,
+		setsData: Record<string, { chars: string[]; enabled: boolean }>,
+	): CharacterPool {
 		const cp = new CharacterPool(purchaseChar)
 		for (const [name, data] of Object.entries(setsData)) {
 			cp.sets[name] = { chars: data.chars, enabled: data.enabled }

@@ -1,8 +1,8 @@
 import { safeQueryHTMLElement, safeQueryHTMLElementInput } from "./domUtils.js"
 import { Game } from "./game.js"
-import { OneTimeUpgrade } from "./upgrade.js"
-import { GameDisplay } from "./gameDisplay.js"
 import { GameController } from "./gameController.js"
+import { GameDisplay } from "./gameDisplay.js"
+import { OneTimeUpgrade } from "./upgrade.js"
 
 export class GameManager {
 	game: Game
@@ -22,22 +22,21 @@ export class GameManager {
 	}
 
 	setupListeners(): void {
-		safeQueryHTMLElement('#copy-game-save').addEventListener("click", () => {
+		safeQueryHTMLElement("#copy-game-save").addEventListener("click", () => {
 			const saveString = this.getSaveString()
 			navigator.clipboard.writeText(saveString)
 		})
-		safeQueryHTMLElement('#save-game-button').addEventListener("click", () => {
+		safeQueryHTMLElement("#save-game-button").addEventListener("click", () => {
 			this.saveGame()
 		})
-		safeQueryHTMLElement('#load-game-button').addEventListener("click", () => {
-			const input = safeQueryHTMLElementInput('#load-game-input')
+		safeQueryHTMLElement("#load-game-button").addEventListener("click", () => {
+			const input = safeQueryHTMLElementInput("#load-game-input")
 			const saveString = input.value
 			if (saveString === "") {
 				if (this.loadGame() === false) {
 					alert("No save found")
 				}
-			}
-			else {
+			} else {
 				this.loadGameFromString(saveString)
 			}
 		})
@@ -52,13 +51,12 @@ export class GameManager {
 		localStorage.setItem("gameSave", gameJson)
 	}
 
-	loadGame(): false | void {
+	loadGame(): false | undefined {
 		const saveString = localStorage.getItem("gameSave")
 		if (saveString) {
 			const gameObj = JSON.parse(saveString) as Record<string, unknown>
 			this.createGameFromObj(gameObj)
-		}
-		else {
+		} else {
 			return false
 		}
 	}
@@ -72,7 +70,7 @@ export class GameManager {
 		this.game = new Game(gameObj)
 		this.gameDisplay.game = this.game
 		this.gameDisplay.upgradeDisplays = this.gameDisplay.createDisplays(this.game.upgrades)
-		const lockedDisplays = this.gameDisplay.upgradeDisplays.filter(d => {
+		const lockedDisplays = this.gameDisplay.upgradeDisplays.filter((d) => {
 			if (d.upgrade instanceof OneTimeUpgrade && d.upgrade.owned > 0) {
 				d.hide()
 				return false

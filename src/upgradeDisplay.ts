@@ -1,6 +1,6 @@
-import { safeQueryHTMLElement, flashClass, clearChildren, createCharToken } from "./domUtils.js"
-import { CharacterPool } from "./characterPool.js"
-import { Upgrade } from "./upgrade.js"
+import type { CharacterPool } from "./characterPool.js"
+import { clearChildren, createCharToken, flashClass, safeQueryHTMLElement } from "./domUtils.js"
+import type { Upgrade } from "./upgrade.js"
 
 export class UpgradeDisplay {
 	upgrade: Upgrade

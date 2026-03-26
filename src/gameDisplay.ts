@@ -1,6 +1,12 @@
-import { safeQueryHTMLElement, safeQueryHTMLElementInput, flashClass, clearChildren, createCharToken } from "./domUtils.js"
-import { Game } from "./game.js"
-import { Upgrade } from "./upgrade.js"
+import {
+	clearChildren,
+	createCharToken,
+	flashClass,
+	safeQueryHTMLElement,
+	safeQueryHTMLElementInput,
+} from "./domUtils.js"
+import type { Game } from "./game.js"
+import type { Upgrade } from "./upgrade.js"
 import { UpgradeDisplay } from "./upgradeDisplay.js"
 
 export class GameDisplay {
@@ -53,7 +59,7 @@ export class GameDisplay {
 			upgrade,
 			this.createUpgradeCardHtml(upgrade.name),
 			this.createDisplayHTML(),
-			upgrade.thresholdMulti
+			upgrade.thresholdMulti,
 		)
 		return display
 	}
@@ -70,8 +76,8 @@ export class GameDisplay {
 	displayScore(): void {
 		this.scoreDisplay.textContent = String(Math.floor(this.game.score))
 		if (this.game.scoreMulti > 1) {
-			safeQueryHTMLElement('.multi-display').classList.remove("unavailable")
-			safeQueryHTMLElement('.multi-value').textContent = String(this.game.scoreMulti)
+			safeQueryHTMLElement(".multi-display").classList.remove("unavailable")
+			safeQueryHTMLElement(".multi-value").textContent = String(this.game.scoreMulti)
 		}
 	}
 
@@ -92,7 +98,7 @@ export class GameDisplay {
 
 	showCompletionProgress(current: number, total: number): void {
 		this.completionProgress.classList.remove("unavailable")
-		this.completionProgress.textContent = current + "/" + total
+		this.completionProgress.textContent = `${current}/${total}`
 	}
 
 	exitCompletionMode(): void {
@@ -187,11 +193,11 @@ export class GameDisplay {
 	}
 
 	createUpgradeCardHtml(name: string): HTMLDivElement {
-		const upgrade = document.createElement('div')
+		const upgrade = document.createElement("div")
 		upgrade.classList.add("upgrade")
 		upgrade.classList.add("unavailable")
 
-		const upgradeName = document.createElement('div')
+		const upgradeName = document.createElement("div")
 		upgradeName.classList.add("upgrade-name")
 		upgradeName.textContent = name
 		upgrade.appendChild(upgradeName)
@@ -215,16 +221,16 @@ export class GameDisplay {
 	}
 
 	createValueDisplayHtml(phrase: string, text: string): HTMLDivElement {
-		const upgradeCost = document.createElement('div')
-		upgradeCost.classList.add("upgrade-" + phrase)
+		const upgradeCost = document.createElement("div")
+		upgradeCost.classList.add(`upgrade-${phrase}`)
 
-		const costTitle = document.createElement('div')
-		costTitle.classList.add(phrase + "-title")
+		const costTitle = document.createElement("div")
+		costTitle.classList.add(`${phrase}-title`)
 		costTitle.textContent = text
 		upgradeCost.appendChild(costTitle)
 
-		const costValue = document.createElement('div')
-		costValue.classList.add(phrase + "-value")
+		const costValue = document.createElement("div")
+		costValue.classList.add(`${phrase}-value`)
 		upgradeCost.appendChild(costValue)
 		return upgradeCost
 	}
