@@ -15,7 +15,6 @@
 | Description | Severity | Difficulty |
 |---|---|---|
 | add sufficient functional testing | high | medium |
-| add system to determine a method to use to estimate what weights should be used for upgrades| high | high |
 | implement auto-save to localStorage | high |  medium |
 | redesign the upgrade cards to take less space | high | low |
 | create 'help' features like 'view your worst chars' | medium | high |

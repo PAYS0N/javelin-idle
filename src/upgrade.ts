@@ -36,8 +36,9 @@ export class Upgrade {
 	}
 
 	purchase(characterPool: CharacterPool): void {
+		const ownedBefore = this.owned
 		this.owned += 1
-		this.cost += this.costIncrease
+		this.cost += Math.round(this.costIncrease * Math.exp(ownedBefore / 10))
 		this.completionKey = characterPool.generateCompletionKey(this.keyLength + this.owned * this.keyIncrease)
 	}
 

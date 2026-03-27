@@ -9,7 +9,7 @@ Each upgrade has two key components:
 - **Selector key** (`key`) — always `$` + 1 pool char, shown on the card, never regenerated after initial assignment. Used to enter completion mode.
 - **Completion key** (`completionKey: string[]`) — a random pool-char sequence of length `keyLength + owned × keyIncrease`, not shown on the card, regenerated on purchase and when char sets change. Each entry may be a single character or a multi-character word.
 
-`purchase(characterPool)` increments `owned`, adds `costIncrease` to `cost`, and regenerates only `completionKey` with length `keyLength + (owned × keyIncrease)`. Selector key is unchanged.
+`purchase(characterPool)` increments `owned`, increases `cost` by `Math.round(costIncrease * Math.exp(ownedBefore / 10))` (where `ownedBefore` is the value before incrementing, keeping cost as an integer), and regenerates only `completionKey` with length `keyLength + (owned × keyIncrease)`. Selector key is unchanged. Cost growth is exponential: at owned=0 the increase equals `costIncrease`; at owned=10 it is ~2.7×, at owned=20 ~7.4×, at owned=40 ~54×.
 
 ---
 

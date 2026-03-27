@@ -54,3 +54,8 @@ Single-page, static HTML (`index.html`). No templating engine. Upgrade cards and
 ## Intervals & Timing
 
 The main game loop uses `requestAnimationFrame` with a manual 100ms gate (`delta >= 100`) for score accumulation and UI updates. Display animations (auto-input typing) use per-upgrade elapsed tracking inside the rAF loop — no `setInterval` or `setTimeout` for game loop work.
+
+
+# Rules
+After any complete code change, run `npx biome check src/` and `npm run build`. Both must pass.
+When the linter or compiler flags an issue, fix the underlying problem — do not suppress or work around it. For example, if the linter warns about a non-null assertion (`!`), add a type guard or early return that narrows the type naturally. Do not swap `!` for `?.` when the types don't support it, and do not add `// biome-ignore`. The goal is to understand *why* the tool is complaining and write code that satisfies the constraint cleanly.

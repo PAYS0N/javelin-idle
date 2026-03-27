@@ -55,6 +55,13 @@ describe("Upgrade", () => {
 		expect(u.cost).toBe(26)
 	})
 
+	it("cost scales exponentially after 40 purchases", () => {
+		const cp = makePool()
+		const u = makeUpgrade({ cost: 20, costIncrease: 3 })
+		for (let i = 0; i < 40; i++) u.purchase(cp)
+		expect(u.cost).toBe(1546)
+	})
+
 	it("purchase regenerates completionKey with correct length", () => {
 		const cp = makePool()
 		const u = makeUpgrade({ keyLength: 3, keyIncrease: 1 })
