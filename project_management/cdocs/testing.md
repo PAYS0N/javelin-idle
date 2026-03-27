@@ -34,9 +34,13 @@ Functional tests require `dist/` to be built first (`npm run build`).
 
 Located in `tests/simulation/balance.test.ts`. A headless simulation that models the game economy mathematically using real `Game`/`Upgrade`/`CharacterPool` instances but no DOM.
 
-Configurable parameters: `manualTypesPerSecond` (default 2), `maxSimTimeSeconds` (default 36000). Tick interval is 100ms. Purchase strategy: buy the non-OneTimeUpgrade with best value/cost ratio; save for a OneTimeUpgrade when score reaches 2/3 of its cost.
+**Model**: 100ms ticks. Manual typing adds `scoreMulti * manualTypesPerSecond * tickInterval` per tick. Auto-score uses a continuous approximation: `upgrade.value * upgrade.owned * tickInterval` per tick per eligible upgrade (avoids discrete-fire floating-point drift). Each purchase advances `simTime` by `completionKey.length / manualTypesPerSecond` seconds (completion window); auto-score accumulates during that window but manual typing does not.
 
-Outputs a human-readable timing table to `test-results/balance-simulation.txt` (gitignored). Tests assert: first upgrade purchased within 15 seconds, no gap between purchases exceeds 20 minutes.
+**Effective cost** (used by all strategies for decision-making): `upgrade.cost + (completionKey.length / manualTypesPerSecond) * 3`. This weights the typing-time overhead alongside the score deduction.
+
+**Three strategies**: `greedyStrategy` — saves for OneTimeUpgrades when score ≥ 2/3 of cost, otherwise buys highest `value / effectiveCost` ratio; `naiveStrategy` — buys the affordable upgrade with the shortest completion key; `saverStrategy` — saves for the revealed upgrade with the highest effectiveCost.
+
+Outputs a per-strategy timing table to `test-results/balance-simulation.txt` (gitignored). Per-strategy assertions: first purchase within 30s, no gap > 30 minutes, total completion within strategy-specific bounds (~2× observed baseline: Greedy 7200s, Naive 6200s, Saver 5400s).
 
 ---
 

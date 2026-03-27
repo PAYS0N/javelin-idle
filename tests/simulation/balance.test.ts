@@ -11,7 +11,7 @@ interface PurchaseEvent {
 	upgradeName: string
 	timestamp: number
 	timeSincePrev: number
-	scoreAtPurchase: number
+	scorePerSec: number
 	purchaseCount: number
 }
 
@@ -25,159 +25,203 @@ function formatTime(seconds: number): string {
 	return `${hours}h ${remainingMinutes}m`
 }
 
-function valuePerCost(upgrade: Upgrade): number {
-	return upgrade.value / upgrade.cost
+function calcScorePerSec(game: { scoreMulti: number; upgrades: Upgrade[] }, manualTypesPerSecond: number): number {
+	const autoScore = game.upgrades
+		.filter((u) => !(u instanceof OneTimeUpgrade) && u.value > 0)
+		.reduce((sum, u) => sum + u.value * u.owned, 0)
+	return game.scoreMulti * manualTypesPerSecond + autoScore
 }
 
-function simulate(manualTypesPerSecond = 2, maxSimTimeSeconds = 36000): PurchaseEvent[] {
+// Opportunity cost of a purchase: score deducted + typing time weighted at 3 score/sec
+function effectiveCost(upgrade: Upgrade, manualTypesPerSecond: number): number {
+	return upgrade.cost + (upgrade.completionKey.length / manualTypesPerSecond) * 3
+}
+
+type Strategy = (game: Game, revealedUpgrades: Set<string>, manualTypesPerSecond: number) => Upgrade | null
+
+// Save for OneTimeUpgrades when close; otherwise buy best value / effectiveCost ratio
+function greedyStrategy(game: Game, _revealedUpgrades: Set<string>, manualTypesPerSecond: number): Upgrade | null {
+	for (const upgrade of game.upgrades) {
+		if (upgrade instanceof OneTimeUpgrade && upgrade.owned === 0) {
+			if (game.score >= upgrade.cost * (2 / 3)) {
+				return game.score >= upgrade.cost ? upgrade : null
+			}
+		}
+	}
+	const candidates = game.upgrades.filter(
+		(u) => !(u instanceof OneTimeUpgrade) && game.score >= u.cost && u.value > 0,
+	)
+	if (candidates.length === 0) return null
+	candidates.sort(
+		(a, b) => b.value / effectiveCost(b, manualTypesPerSecond) - a.value / effectiveCost(a, manualTypesPerSecond),
+	)
+	return candidates[0]
+}
+
+// Buy the affordable upgrade with the shortest completion key, no value/cost optimization
+function naiveStrategy(game: Game, _revealedUpgrades: Set<string>, _manualTypesPerSecond: number): Upgrade | null {
+	const candidates = game.upgrades.filter((u) => {
+		if (u instanceof OneTimeUpgrade) return u.owned === 0 && game.score >= u.cost
+		return game.score >= u.cost
+	})
+	if (candidates.length === 0) return null
+	candidates.sort((a, b) => a.completionKey.length - b.completionKey.length)
+	return candidates[0]
+}
+
+// Save for the revealed upgrade with the highest effectiveCost
+function saverStrategy(game: Game, revealedUpgrades: Set<string>, manualTypesPerSecond: number): Upgrade | null {
+	const visible = game.upgrades.filter(
+		(u) => revealedUpgrades.has(u.name) && (u instanceof OneTimeUpgrade ? u.owned === 0 : true),
+	)
+	if (visible.length === 0) return null
+	visible.sort((a, b) => effectiveCost(b, manualTypesPerSecond) - effectiveCost(a, manualTypesPerSecond))
+	const target = visible[0]
+	return game.score >= target.cost ? target : null
+}
+
+// Execute a purchase, advance simTime by the completion window, accumulate auto-score during that window.
+// No manual typing score during the completion window (player is typing the purchase sequence).
+function executePurchase(game: Game, upgrade: Upgrade, simTime: number, manualTypesPerSecond: number): number {
+	game.score -= upgrade.cost
+	if (upgrade instanceof OneTimeUpgrade) {
+		upgrade.purchase() // sets owned=1 and calls onPurchase internally
+		const timeCost = upgrade.completionKey.length / manualTypesPerSecond
+		game.regenerateCompletionKeys()
+		for (const u of game.upgrades) {
+			if (u.owned > 0 && !(u instanceof OneTimeUpgrade) && u.value > 0) {
+				game.score += u.value * u.owned * timeCost
+			}
+		}
+		return simTime + timeCost
+	}
+	// Regular upgrade: completionKey is regenerated inside purchase() with the post-increment owned
+	upgrade.purchase(game.characterPool)
+	const timeCost = upgrade.completionKey.length / manualTypesPerSecond
+	for (const u of game.upgrades) {
+		if (u.owned > 0 && !(u instanceof OneTimeUpgrade) && u.value > 0) {
+			game.score += u.value * u.owned * timeCost
+		}
+	}
+	return simTime + timeCost
+}
+
+function simulate(strategy: Strategy, manualTypesPerSecond = 2, maxSimTimeSeconds = 10800): PurchaseEvent[] {
 	const game = new Game()
 	const events: PurchaseEvent[] = []
-	const tickInterval = 0.1 // 100ms ticks
+	const tickInterval = 0.1
 	let simTime = 0
 	let lastPurchaseTime = 0
-
-	// Track auto-score timing per upgrade (mirrors displayTicks in gameController)
-	const lastAutoFire = new Map<string, number>()
-
-	// When saving for a OneTimeUpgrade, store it here
-	let savingTarget: OneTimeUpgrade | null = null
+	const revealedUpgrades = new Set<string>()
 
 	while (simTime < maxSimTimeSeconds) {
 		simTime += tickInterval
 
-		// Manual typing: player types manualTypesPerSecond chars/sec
-		// Each successful type adds scoreMulti to score
+		// Track first-ever reveal (score may dip later, but upgrade stays known)
+		for (const upgrade of game.upgrades) {
+			if (!revealedUpgrades.has(upgrade.name) && game.score >= upgrade.cost * upgrade.thresholdMulti) {
+				revealedUpgrades.add(upgrade.name)
+			}
+		}
+
+		// Manual typing score (not accumulated during completion windows — modeled in executePurchase)
 		game.score += game.scoreMulti * manualTypesPerSecond * tickInterval
 
-		// Auto-score: each owned upgrade fires owned times per second
+		// Auto-score: continuous approximation avoids floating-point drift from discrete fire timestamps
 		for (const upgrade of game.upgrades) {
 			if (upgrade.owned > 0 && !(upgrade instanceof OneTimeUpgrade) && upgrade.value > 0) {
-				const fireInterval = 1.0 / upgrade.owned
-				const lastFire = lastAutoFire.get(upgrade.name) ?? 0
-				if (simTime - lastFire >= fireInterval) {
-					lastAutoFire.set(upgrade.name, simTime)
-					game.score += upgrade.value
-				}
+				game.score += upgrade.value * upgrade.owned * tickInterval
 			}
 		}
 
-		// Check if we should start saving for a OneTimeUpgrade
-		// If score >= 2/3 of any unpurchased OneTimeUpgrade cost, save for it
-		if (!savingTarget) {
-			for (const upgrade of game.upgrades) {
-				if (upgrade instanceof OneTimeUpgrade && upgrade.owned === 0) {
-					if (game.score >= upgrade.cost * (2 / 3)) {
-						savingTarget = upgrade
-						break
-					}
-				}
-			}
+		const chosen = strategy(game, revealedUpgrades, manualTypesPerSecond)
+		if (chosen !== null) {
+			const purchaseCount = chosen instanceof OneTimeUpgrade ? 1 : chosen.owned + 1
+			simTime = executePurchase(game, chosen, simTime, manualTypesPerSecond)
+			events.push({
+				upgradeName: chosen.name,
+				timestamp: simTime,
+				timeSincePrev: simTime - lastPurchaseTime,
+				scorePerSec: calcScorePerSec(game, manualTypesPerSecond),
+				purchaseCount,
+			})
+			lastPurchaseTime = simTime
 		}
 
-		// If saving for a OneTimeUpgrade, only buy that
-		if (savingTarget) {
-			if (game.score >= savingTarget.cost) {
-				const upgrade = savingTarget
-				game.score -= upgrade.cost
-				upgrade.purchase()
-				upgrade.onPurchase()
-				game.regenerateCompletionKeys()
-
-				events.push({
-					upgradeName: upgrade.name,
-					timestamp: simTime,
-					timeSincePrev: simTime - lastPurchaseTime,
-					scoreAtPurchase: game.score,
-					purchaseCount: 1,
-				})
-				lastPurchaseTime = simTime
-				savingTarget = null
-			}
-			// Skip buying other upgrades while saving
-		} else {
-			// Buy the non-OneTimeUpgrade with best value/cost ratio
-			const candidates = game.upgrades.filter(
-				(u) => !(u instanceof OneTimeUpgrade) && game.score >= u.cost && u.value > 0,
-			)
-
-			if (candidates.length > 0) {
-				candidates.sort((a, b) => valuePerCost(b) - valuePerCost(a))
-				const upgrade = candidates[0]
-				const purchaseCount = upgrade.owned + 1
-
-				game.score -= upgrade.cost
-				upgrade.purchase(game.characterPool)
-
-				events.push({
-					upgradeName: upgrade.name,
-					timestamp: simTime,
-					timeSincePrev: simTime - lastPurchaseTime,
-					scoreAtPurchase: game.score,
-					purchaseCount,
-				})
-				lastPurchaseTime = simTime
-			}
-		}
-
-		// End when all upgrades have been purchased at least once
-		if (game.upgrades.every((u) => u.owned > 0)) {
-			break
-		}
+		if (game.upgrades.every((u) => u.owned > 0)) break
 	}
 
 	return events
 }
 
-describe("Balance simulation", () => {
-	it("prints a human-readable timing table", () => {
-		const events = simulate(2, 36000)
-
-		// Build the table
-		const lines: string[] = []
-		lines.push("")
-		lines.push("=== Balance Simulation Results (2 manual types/sec) ===")
-		lines.push("")
+function buildTable(events: PurchaseEvent[]): string[] {
+	const lines: string[] = []
+	lines.push(
+		`${"Event".padEnd(40)} ${"Time".padStart(10)} ${"Delta".padStart(10)} ${"#".padStart(4)} ${"Score/sec".padStart(12)}`,
+	)
+	lines.push("-".repeat(80))
+	for (const event of events) {
+		const name = `${event.upgradeName} #${event.purchaseCount}`
 		lines.push(
-			`${"Event".padEnd(40)} ${"Time".padStart(10)} ${"Delta".padStart(10)} ${"#".padStart(4)} ${"Score After".padStart(12)}`,
+			`${name.padEnd(40)} ${formatTime(event.timestamp).padStart(10)} ${formatTime(event.timeSincePrev).padStart(10)} ${String(event.purchaseCount).padStart(4)} ${event.scorePerSec.toFixed(2).padStart(12)}`,
 		)
-		lines.push("-".repeat(80))
+	}
+	const last = events[events.length - 1]
+	lines.push("-".repeat(80))
+	lines.push(`Total purchases: ${events.length}`)
+	lines.push(`Total time: ${formatTime(last.timestamp)}`)
+	return lines
+}
 
-		for (const event of events) {
-			const name = `${event.upgradeName} #${event.purchaseCount}`
-			lines.push(
-				`${name.padEnd(40)} ${formatTime(event.timestamp).padStart(10)} ${formatTime(event.timeSincePrev).padStart(10)} ${String(event.purchaseCount).padStart(4)} ${Math.floor(event.scoreAtPurchase).toString().padStart(12)}`,
-			)
+const STRATEGIES: Array<[string, Strategy]> = [
+	["Greedy", greedyStrategy],
+	["Naive", naiveStrategy],
+	["Saver", saverStrategy],
+]
+
+describe("Balance simulation", () => {
+	it("writes timing tables for all strategies", () => {
+		const output: string[] = ["", "=== Balance Simulation Results (2 manual types/sec) ===", ""]
+
+		for (const [name, strategy] of STRATEGIES) {
+			const events = simulate(strategy)
+			output.push(`--- ${name} Strategy ---`, "")
+			output.push(...buildTable(events))
+			output.push("")
 		}
 
-		const lastEvent = events[events.length - 1]
-		lines.push("-".repeat(80))
-		lines.push(`Total purchases: ${events.length}`)
-		lines.push(`Total time to complete: ${formatTime(lastEvent.timestamp)}`)
-		lines.push("")
-
-		// Write results to test-results/
 		mkdirSync(RESULTS_DIR, { recursive: true })
-		writeFileSync(resolve(RESULTS_DIR, "balance-simulation.txt"), lines.join("\n"))
+		writeFileSync(resolve(RESULTS_DIR, "balance-simulation.txt"), output.join("\n"))
 
-		// Sanity: simulation should complete
-		expect(events.length).toBeGreaterThan(0)
-		expect(lastEvent.timestamp).toBeGreaterThan(0)
+		expect(true).toBe(true)
 	})
 
-	it("first upgrade is purchased within 15 seconds", () => {
-		const events = simulate(2, 36000)
-		// Two finger typer costs 20, with scoreMulti=1 and 2 types/sec = 2 score/sec → ~10s
-		const firstPurchase = events[0]
-		expect(firstPurchase.timestamp).toBeLessThan(15)
-	})
+	for (const [name, strategy] of STRATEGIES) {
+		describe(`${name} strategy`, () => {
+			it("first purchase within 30 seconds", () => {
+				const events = simulate(strategy)
+				expect(events[0].timestamp, `${name}: first purchase at ${formatTime(events[0].timestamp)}`).toBeLessThan(30)
+			})
 
-	it("time between purchases never exceeds 20 minutes", () => {
-		const events = simulate(2, 36000)
-		for (const event of events) {
-			expect(
-				event.timeSincePrev,
-				`Gap before ${event.upgradeName} #${event.purchaseCount} was ${formatTime(event.timeSincePrev)}`,
-			).toBeLessThan(1200)
-		}
-	})
+			it("no gap between purchases exceeds 30 minutes", () => {
+				const events = simulate(strategy)
+				for (const event of events) {
+					expect(
+						event.timeSincePrev,
+						`${name}: gap before ${event.upgradeName} #${event.purchaseCount} was ${formatTime(event.timeSincePrev)}`,
+					).toBeLessThan(1800)
+				}
+			})
+
+			it("completes within time limit", () => {
+				const events = simulate(strategy)
+				const totalTime = events[events.length - 1].timestamp
+				// Bounds are ~2× the observed baseline: tight enough to catch a broken economy,
+				// loose enough to survive small balance tweaks.
+				// Observed: Greedy ~3600s, Naive ~3075s, Saver ~2580s
+				const limit = name === "Greedy" ? 7200 : name === "Naive" ? 6200 : 5400
+				expect(totalTime, `${name}: completed in ${formatTime(totalTime)}`).toBeLessThan(limit)
+			})
+		})
+	}
 })

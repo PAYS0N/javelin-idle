@@ -17,7 +17,7 @@ Each upgrade has two key components:
 
 `OneTimeUpgrade extends Upgrade` with `owned` capped at 1 and an `onPurchase` callback that fires on purchase. Cost/key delta/value are all 0. Accepts an optional `keyLength` parameter (passed to `super`) so `regenerateCompletionKeys()` can correctly compute its completion key length.
 
-- **"Unlock Letters"** — passes `keyLength = 10` and `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×2.5 and calls `characterPool.addLetters()`.
+- **"Unlock Letters"** — passes `keyLength = 10` and `() => game.addLetters()` as its callback, which bumps `scoreMulti` by ×5 and calls `characterPool.addLetters()`.
 - **"Unlock Words"** — passes `keyLength = 12` and `() => game.addWords()` as its callback, which bumps `scoreMulti` by ×10 and calls `characterPool.addWords()`.
 
 ---

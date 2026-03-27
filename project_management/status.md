@@ -14,7 +14,6 @@
 
 | Description | Severity | Difficulty |
 |---|---|---|
-| fix balance simulation: a) correct score accumulation model b) create multiple user strategies and assert each produces reasonable results | high | high |
 | add sufficient functional testing | high | medium |
 | add system to determine a method to use to estimate what weights should be used for upgrades| high | high |
 | implement auto-save to localStorage | high |  medium |
