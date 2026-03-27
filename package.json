@@ -7,7 +7,10 @@
     "build": "tsc",
     "lint": "biome lint src/",
     "check": "biome check src/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run tests/unit tests/simulation && npx playwright test",
+    "test:unit": "vitest run tests/unit",
+    "test:functional": "npx playwright test",
+    "test:sim": "vitest run tests/simulation"
   },
   "repository": {
     "type": "git",
@@ -22,6 +25,10 @@
   "homepage": "https://github.com/PAYS0N/javelin-idle#readme",
   "devDependencies": {
     "@biomejs/biome": "2.4.9",
-    "typescript": "^5.9.3"
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0",
+    "serve": "^14.2.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   }
 }

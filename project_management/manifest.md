@@ -17,6 +17,7 @@
 | [project_management/cdocs/input.md](cdocs/input.md) | GameController: key mapping, normal/completion mode input, game loop, auto-scoring |
 | [project_management/cdocs/display.md](cdocs/display.md) | GameDisplay and UpgradeDisplay: DOM methods, settings panel, upgrade cards, DOM structure |
 | [project_management/cdocs/persistence.md](cdocs/persistence.md) | Save/load wiring, save format, CharacterPool save format, infrastructure |
+| [project_management/cdocs/testing.md](cdocs/testing.md) | Testing infrastructure: Vitest unit tests, Playwright functional tests, balance simulation, npm scripts |
 | [project_management/standards/style.md](standards/style.md) | Coding conventions: naming, type annotations, DOM access patterns, serialization, and timing |
 | [project_management/standards/architecture.md](standards/architecture.md) | Architecture conventions: module hierarchy, responsibilities, forbidden patterns, state mutation rules |
 | [project_management/architecture-baseline.md](architecture-baseline.md) | Mermaid diagrams of current architecture: dependency graph, layer boundaries, DOM access, state mutation flow |
@@ -35,8 +36,10 @@
 | [nginx.conf](../nginx.conf) | Nginx config for serving static files in the Docker container |
 | [tsconfig.json](../tsconfig.json) | TypeScript compiler configuration: strict mode, ES2020 target, ES modules, outputs to dist/ |
 | [biome.json](../biome.json) | Biome linter/formatter configuration: tabs, no semicolons, architectural lint rules |
-| [package.json](../package.json) | npm package config with TypeScript and Biome dev dependencies, build/lint/check scripts |
-| [.gitignore](../.gitignore) | Git ignore rules for node_modules/ and dist/ |
+| [package.json](../package.json) | npm package config with TypeScript, Biome, Vitest, Playwright, and serve dev dependencies; build/lint/check/test scripts |
+| [.gitignore](../.gitignore) | Git ignore rules for node_modules/, dist/, and test-results/ |
+| [vitest.config.ts](../vitest.config.ts) | Vitest configuration: includes unit and simulation tests |
+| [playwright.config.ts](../playwright.config.ts) | Playwright configuration: Chromium browser, serves project root via `serve` on port 4173 |
 
 ---
 
@@ -83,3 +86,15 @@
 | File | Description |
 |------|-------------|
 | [src/main.ts](../src/main.ts) | Entry point: instantiates GameManager and calls startGame on window load |
+
+---
+
+## Tests
+
+| File | Description |
+|------|-------------|
+| [tests/unit/characterPool.test.ts](../tests/unit/characterPool.test.ts) | Unit tests for CharacterPool: pool management, key generation, toggle logic, serialization round-trip |
+| [tests/unit/upgrade.test.ts](../tests/unit/upgrade.test.ts) | Unit tests for Upgrade and OneTimeUpgrade: purchase mechanics, cost/owned increments, completion key growth |
+| [tests/unit/game.test.ts](../tests/unit/game.test.ts) | Unit tests for Game: scoring, upgrade table structure, findUpgradeByKey, regenerateCompletionKeys, serialization round-trip |
+| [tests/functional/game.test.ts](../tests/functional/game.test.ts) | Playwright browser tests: init state, cheat code scoring, upgrade reveal, goal typing, completion mode enter/exit |
+| [tests/simulation/balance.test.ts](../tests/simulation/balance.test.ts) | Headless economy simulation: models manual typing + auto-score, outputs timing table to test-results/ |
