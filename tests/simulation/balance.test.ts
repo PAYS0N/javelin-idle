@@ -49,12 +49,13 @@ function greedyStrategy(game: Game, _revealedUpgrades: Set<string>, manualTypesP
 		}
 	}
 	const candidates = game.upgrades.filter(
-		(u) => !(u instanceof OneTimeUpgrade) && game.score >= u.cost && u.value > 0,
+		(u) => !(u instanceof OneTimeUpgrade) && u.value > 0,
 	)
 	if (candidates.length === 0) return null
 	candidates.sort(
 		(a, b) => b.value / effectiveCost(b, manualTypesPerSecond) - a.value / effectiveCost(a, manualTypesPerSecond),
 	)
+	if (game.score < candidates[0].cost) return null
 	return candidates[0]
 }
 
@@ -106,7 +107,7 @@ function executePurchase(game: Game, upgrade: Upgrade, simTime: number, manualTy
 	return simTime + timeCost
 }
 
-function simulate(strategy: Strategy, manualTypesPerSecond = 2, maxSimTimeSeconds = 10800): PurchaseEvent[] {
+function simulate(strategy: Strategy, manualTypesPerSecond = 1, maxSimTimeSeconds = 10800): PurchaseEvent[] {
 	const game = new Game()
 	const events: PurchaseEvent[] = []
 	const tickInterval = 0.1
@@ -173,6 +174,69 @@ function buildTable(events: PurchaseEvent[]): string[] {
 	return lines
 }
 
+function round(n: number): number {
+	return Number(n.toFixed(1))
+}
+
+interface CompactStrategy {
+	totalTime: number
+	totalPurchases: number
+	maxGap: number
+	finalScorePerSec: number
+	milestones: Record<string, number | null>
+	upgradeCounts: Record<string, number>
+	scorePerSecAt: Record<number, number>
+}
+
+function buildCompact(events: PurchaseEvent[], sampleInterval = 300): CompactStrategy {
+	const last = events[events.length - 1]
+	const milestones: Record<string, number | null> = {
+		firstPurchase: events.length > 0 ? round(events[0].timestamp) : null,
+		unlockLetters: null,
+		unlockWords: null,
+		firstTouchTyper: null,
+		allOwned: last ? round(last.timestamp) : null,
+	}
+	const upgradeCounts: Record<string, number> = {}
+	let maxGap = 0
+
+	for (const event of events) {
+		if (event.upgradeName === "Unlock Letters" && milestones.unlockLetters === null) {
+			milestones.unlockLetters = round(event.timestamp)
+		}
+		if (event.upgradeName === "Unlock Words" && milestones.unlockWords === null) {
+			milestones.unlockWords = round(event.timestamp)
+		}
+		if (event.upgradeName === "Touch typer" && milestones.firstTouchTyper === null) {
+			milestones.firstTouchTyper = round(event.timestamp)
+		}
+		upgradeCounts[event.upgradeName] = (upgradeCounts[event.upgradeName] || 0) + 1
+		if (event.timeSincePrev > maxGap) maxGap = event.timeSincePrev
+	}
+
+	const scorePerSecAt: Record<number, number> = {}
+	const maxTime = last ? last.timestamp : 0
+	let eventIdx = 0
+	let currentRate = 0
+	for (let t = sampleInterval; t <= maxTime; t += sampleInterval) {
+		while (eventIdx < events.length && events[eventIdx].timestamp <= t) {
+			currentRate = events[eventIdx].scorePerSec
+			eventIdx++
+		}
+		scorePerSecAt[t] = Number(currentRate.toFixed(2))
+	}
+
+	return {
+		totalTime: last ? round(last.timestamp) : 0,
+		totalPurchases: events.length,
+		maxGap: round(maxGap),
+		finalScorePerSec: last ? last.scorePerSec : 0,
+		milestones,
+		upgradeCounts,
+		scorePerSecAt,
+	}
+}
+
 const STRATEGIES: Array<[string, Strategy]> = [
 	["Greedy", greedyStrategy],
 	["Naive", naiveStrategy],
@@ -181,17 +245,25 @@ const STRATEGIES: Array<[string, Strategy]> = [
 
 describe("Balance simulation", () => {
 	it("writes timing tables for all strategies", () => {
-		const output: string[] = ["", "=== Balance Simulation Results (2 manual types/sec) ===", ""]
+		const manualTypesPerSec = 1
+		const output: string[] = ["", `=== Balance Simulation Results (${manualTypesPerSec} manual type/sec) ===`, ""]
+		const compact: Record<string, unknown> = {
+			meta: { manualTypesPerSec, maxTime: 10800, simDate: new Date().toISOString().slice(0, 10) },
+			strategies: {} as Record<string, CompactStrategy>,
+		}
+		const strategies = compact.strategies as Record<string, CompactStrategy>
 
 		for (const [name, strategy] of STRATEGIES) {
-			const events = simulate(strategy)
+			const events = simulate(strategy, manualTypesPerSec)
 			output.push(`--- ${name} Strategy ---`, "")
 			output.push(...buildTable(events))
 			output.push("")
+			strategies[name] = buildCompact(events)
 		}
 
 		mkdirSync(RESULTS_DIR, { recursive: true })
 		writeFileSync(resolve(RESULTS_DIR, "balance-simulation.txt"), output.join("\n"))
+		writeFileSync(resolve(RESULTS_DIR, "balance-simulation.json"), JSON.stringify(compact, null, "\t"))
 
 		expect(true).toBe(true)
 	})

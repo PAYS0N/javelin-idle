@@ -18,7 +18,7 @@ Where applicable, the prompt should indicate that project_management/standards/s
 Where the task involves creating new files, adding imports, or changing module responsibilities, the prompt should indicate that project_management/standards/architecture.md should be read before planning.
 If there are management decisions that need to be made before the prompt can be created, ask the user, don't decide yourself.
 The prompt should indicate that the plan must be presented first, before code changes.
-Every prompt that involves code changes should include the following linter/compiler compliance block verbatim:
+Every prompt that involves code changes to src/ should include the following linter/compiler compliance block verbatim:
 
 > After any complete code change, run `npx biome check src/` and `npm run build`. Both must pass.
 > When the linter or compiler flags an issue, fix the underlying problem — do not suppress or work around it. For example, if the linter warns about a non-null assertion (`!`), add a type guard or early return that narrows the type naturally. Do not swap `!` for `?.` when the types don't support it, and do not add `// biome-ignore`. The goal is to understand *why* the tool is complaining and write code that satisfies the constraint cleanly.
